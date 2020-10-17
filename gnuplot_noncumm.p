@@ -3,6 +3,7 @@ set output "graph.gif"
 set grid ls 100
 set datafile separator ','
 set xdata time
+set grid ls 25
 set xtics rotate
 system("cp ny_curve.dat data.dat")
 set title '2020 COVID-19 STAT CHANGES OVER TIME IN NEW YORK (NON-CUMULATIVE)'
@@ -16,4 +17,4 @@ do for [ii=1:system('wc -l data.dat')] {
 	'' every ::1::ii u 1:3 w l lw 6 lc 3 notitle smooth bezier, \
 	'' every ::1::ii u 1:4 w p lw 3 lc 7 title 'NEW DEATHS AS OF DAY '.(ii+1), \
 	'' every ::1::ii u 1:4 w l lw 6 lc 7 notitle smooth bezier
-	}
+}
