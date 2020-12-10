@@ -3,7 +3,7 @@
 # Get COVID-19 data from web
 wget -O raw_us_data.csv https://github.com/nytimes/covid-19-data/raw/master/us.csv
 wget -O tmp.csv https://github.com/nytimes/covid-19-data/raw/master/us-states.csv
-wget -O ny_curve.csv https://github.com/nychealth/coronavirus-data/raw/master/case-hosp-death.csv
+wget -O ny_curve.csv https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv
 
 # Removes 3rd field from raw_state_data.csv
 awk -F, '{for(i=1;i<=NF;i++)if(i!=x)f=f?f FS $i:$i;print f;f=""}' x=3 < tmp.csv > raw_state_data.csv

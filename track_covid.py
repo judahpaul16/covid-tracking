@@ -1,3 +1,5 @@
+from PIL import Image, ImageTk
+from itertools import count
 from tkinter import *
 import tkinter as tk
 from tkinter import simpledialog as tk_input
@@ -7,26 +9,19 @@ import sqlite3
 import pandas as pd
 from datetime import date
 import urllib.request
+import subprocess
+import pathlib
+import base64
+import time
 import os
+import sys
 import csv
 import re
-
-response_us = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us.csv').read())
-with open('raw_us_data.dat', 'w') as file:
-	file.write(response_us)
-
-response_states = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us.csv').read())
-with open('tmp.dat', 'w') as file:
-	file.write(response_states)
-
-response_ny_curve = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us.csv').read())
-with open('ny_curve.dat', 'w') as file:
-	file.write(response_ny_curve)
 
 class MainDialog(tk_input.Dialog): # Overwritten
     # organize the layout of the input box
     def body(self, master):
-        self.winfo_toplevel().title("COVID Tracking")
+        self.winfo_toplevel().title("COVID Tracking With GNUPlot")
 
         Label(master, text="Input Below the State Abbreviation and Graph\nType For Visualization",
             font=('Roboto', 12, 'bold')).grid(row=0, column=0, columnspan=2, rowspan=2)
@@ -46,9 +41,9 @@ class MainDialog(tk_input.Dialog): # Overwritten
     # Overwritten: this executes upon hitting 'Okay'
     def validate(self):
         state = str(self.e1.get())
-        gType = str(self.e2.get())
-        self.result = state, gType
-        if state == '' or gType == '':
+        graph_type = str(self.e2.get())
+        self.result = state, graph_type
+        if state == '' or graph_type == '':
             return 0
         else:
             return 1
@@ -70,32 +65,162 @@ def center(master):
     master.resizable(False, False)
     master.deiconify()
 
+def plot(graph_type):
+
+	if graph_type == 1:
+		with open('data.csv', 'r') as file:
+			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" gnuplot_cumm.gp")
+
+	elif graph_type == 2:
+		with open('data.csv', 'r') as file:
+			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" gnuplot_noncumm.gp")
+
 def main():
+	
+	try:    
+	    # initialize input variables
+		state = ''
+		graph_type = ''
+		graph_file = ''
+		# state definitions
+		state_to_abbrev = {
+			'Alabama': 'AL',
+			'Alaska': 'AK',
+			'American Samoa': 'AS',
+			'Arizona': 'AZ',
+			'Arkansas': 'AR',
+			'California': 'CA',
+			'Colorado': 'CO',
+			'Connecticut': 'CT',
+			'Delaware': 'DE',
+			'District of Columbia': 'DC',
+			'Florida': 'FL',
+			'Georgia': 'GA',
+			'Guam': 'GU',
+			'Hawaii': 'HI',
+			'Idaho': 'ID',
+			'Illinois': 'IL',
+			'Indiana': 'IN',
+			'Iowa': 'IA',
+			'Kansas': 'KS',
+			'Kentucky': 'KY',
+			'Louisiana': 'LA',
+			'Maine': 'ME',
+			'Maryland': 'MD',
+			'Massachusetts': 'MA',
+			'Michigan': 'MI',
+			'Minnesota': 'MN',
+			'Mississippi': 'MS',
+			'Missouri': 'MO',
+			'Montana': 'MT',
+			'Nebraska': 'NE',
+			'Nevada': 'NV',
+			'New Hampshire': 'NH',
+			'New Jersey': 'NJ',
+			'New Mexico': 'NM',
+			'New York': 'NY',
+			'North Carolina': 'NC',
+			'North Dakota': 'ND',
+			'Northern Mariana Islands':'MP',
+			'Ohio': 'OH',
+			'Oklahoma': 'OK',
+			'Oregon': 'OR',
+			'Pennsylvania': 'PA',
+			'Puerto Rico': 'PR',
+			'Rhode Island': 'RI',
+			'South Carolina': 'SC',
+			'South Dakota': 'SD',
+			'Tennessee': 'TN',
+			'Texas': 'TX',
+			'Utah': 'UT',
+			'Vermont': 'VT',
+			'Virgin Islands': 'VI',
+			'Virginia': 'VA',
+			'Washington': 'WA',
+			'West Virginia': 'WV',
+			'Wisconsin': 'WI',
+			'Wyoming': 'WY'
+		}
 
-    # initialize input variables
-    state = ''
-    gType = ''
+		abbrev_to_state = dict(map(reversed, state_to_abbrev.items()))
 
-    # popup tkinter input box
-    ROOT = tk.Tk()
-    center(ROOT)
-    ROOT.update()
-    ROOT.withdraw()
-    window = MainDialog(ROOT)
+		# download data files
+		response_us = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us.csv').read())
+		lines = str(response_us).strip("b'").split("\\n")
+		with open('raw_us_data.csv', 'w') as file:
+			for line in lines:
+				file.write(line + "\n")
 
-    # get user input
-    try:
-        state = window.result[0].replace(' ', '')
-        gType = window.result[1].replace(' ', '')
-    except TypeError:
-        pass
+		response_states = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us-states.csv').read())
+		lines = str(response_states).strip("b'").split("\\n")
+		with open('raw_states_data.csv', 'w') as file:
+			for line in lines:
+				file.write(line + "\n")
 
-    # end program upon hitting 'Cancel' or [X]
-    if state == '' or gType == '':
-        ROOT.destroy()
-        raise SystemExit
+		response_ny_curve = str(urllib.request.urlopen('https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv').read())
+		lines = str(response_ny_curve).strip("b'").replace("\\r", "").split("\\n")
+		with open('ny_curve.csv', 'w') as file:
+			for line in lines:
+				file.write(line + "\n")
 
-    root.mainloop()
+		# get user input from dialog
+		try:
+			state = window.result[0].replace(' ', '')
+			graph_type = window.result[1].replace(' ', '')
+		except TypeError:
+			pass
+
+		# end program upon hitting 'Cancel' or [X]
+		if state == '' or graph_type == '':
+			root.destroy()
+			raise SystemExit
+
+		if state != "NY" and graph_type == "2":
+			tkMessageBox.showwarning('Information Not Available',
+				'Unfortunately, Non-cummulative data is only available for New York at this time. Please try again.')
+
+		elif state == "NY" and graph_type == "2":
+			try:
+				os.remove('data.csv')
+			except FileNotFoundError:
+				pass
+
+			os.rename('ny_curve.csv', 'data.csv')
+			plot(2)
+
+		elif state != "US" and graph_type == "1":
+			try:
+				os.remove('data.csv')
+			except FileNotFoundError:
+				pass
+
+			df = pd.read_csv('raw_states_data.csv')
+			df.drop(df.index[df['state'] != abbrev_to_state[state]], inplace=True)
+			df.drop('state', axis=1, inplace=True)
+			df.drop('fips', axis=1, inplace=True)
+			df.to_csv('data.csv', index=False)
+			plot(1)
+
+		elif state == "US" and graph_type == "1":
+			try:
+				os.remove('data.csv')
+			except FileNotFoundError:
+				pass
+
+			os.rename('raw_us_data.csv','data.csv')
+			plot(1)
+
+		tkMessageBox.showinfo("Success", "GIF Successfully Generated!")
+
+	except:
+		tkMessageBox.showerror("Error", "GIF Generation Failed. Please Try Again.")
 
 if __name__ == '__main__':
-    main()
+	# popup tkinter input dialog
+	root = Tk()
+	center(root)
+	root.update()
+	root.withdraw()
+	window = MainDialog(root)
+	# get the graph
+	main()
