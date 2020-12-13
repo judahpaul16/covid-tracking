@@ -1,17 +1,14 @@
-from PIL import Image, ImageTk
-from itertools import count
 from tkinter import *
 import tkinter as tk
 from tkinter import simpledialog as tk_input
 import tkinter.messagebox as tkMessageBox
 import tkinter.ttk as ttk
-import sqlite3	
 import pandas as pd
 from datetime import date
 import urllib.request
-import subprocess
 import pathlib
 import base64
+import shutil
 import time
 import os
 import sys
@@ -61,19 +58,33 @@ def center(master):
     win_height = height + titlebar_height + frm_width
     x = master.winfo_screenwidth() // 2 - win_width // 2
     y = master.winfo_screenheight() // 2 - win_height // 2
-    master.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+    master.geometry(f'{width}x{height}+{x}+{y}')
     master.resizable(False, False)
     master.deiconify()
 
-def plot(graph_type):
+def download_csv(response, filename):
+
+	lines = str(response).strip("b'").replace("\\r", "").split("\\n")
+	with open(filename, 'w') as file:
+		for line in lines:
+			file.write(line + "\n")
+
+def plot(graph_type, state_full):
 
 	if graph_type == 1:
 		with open('data.csv', 'r') as file:
-			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" gnuplot_cumm.gp")
+			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
+								-e \"state=\'{state_full.upper()}\'\" gnuplot_cumm.gp")
+
+	elif graph_type == 2 and state_full == "New York":
+		with open('data.csv', 'r') as file:
+			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
+								-e \"state=\'{state_full.upper()}\'\" gnuplot_ny_noncumm.gp")
 
 	elif graph_type == 2:
 		with open('data.csv', 'r') as file:
-			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" gnuplot_noncumm.gp")
+			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
+								-e \"state=\'{state_full.upper()}\'\" gnuplot_noncumm.gp")
 
 def main():
 	
@@ -81,7 +92,6 @@ def main():
 	    # initialize input variables
 		state = ''
 		graph_type = ''
-		graph_file = ''
 		# state definitions
 		state_to_abbrev = {
 			'Alabama': 'AL',
@@ -133,6 +143,7 @@ def main():
 			'Tennessee': 'TN',
 			'Texas': 'TX',
 			'Utah': 'UT',
+			'United States' : 'US',
 			'Vermont': 'VT',
 			'Virgin Islands': 'VI',
 			'Virginia': 'VA',
@@ -146,26 +157,20 @@ def main():
 
 		# download data files
 		response_us = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us.csv').read())
-		lines = str(response_us).strip("b'").split("\\n")
-		with open('raw_us_data.csv', 'w') as file:
-			for line in lines:
-				file.write(line + "\n")
+		filename = 'raw_us_data.csv'
+		download_csv(response_us, filename)
 
 		response_states = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us-states.csv').read())
-		lines = str(response_states).strip("b'").split("\\n")
-		with open('raw_states_data.csv', 'w') as file:
-			for line in lines:
-				file.write(line + "\n")
+		filename = 'raw_states_data.csv'
+		download_csv(response_states, filename)
 
 		response_ny_curve = str(urllib.request.urlopen('https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv').read())
-		lines = str(response_ny_curve).strip("b'").replace("\\r", "").split("\\n")
-		with open('ny_curve.csv', 'w') as file:
-			for line in lines:
-				file.write(line + "\n")
+		filename = 'ny_curve.csv'
+		download_csv(response_ny_curve, filename)
 
 		# get user input from dialog
 		try:
-			state = window.result[0].replace(' ', '')
+			state = window.result[0].replace(' ', '').upper()
 			graph_type = window.result[1].replace(' ', '')
 		except TypeError:
 			pass
@@ -174,21 +179,8 @@ def main():
 		if state == '' or graph_type == '':
 			root.destroy()
 			raise SystemExit
-
-		if state != "NY" and graph_type == "2":
-			tkMessageBox.showwarning('Information Not Available',
-				'Unfortunately, Non-cummulative data is only available for New York at this time. Please try again.')
-
-		elif state == "NY" and graph_type == "2":
-			try:
-				os.remove('data.csv')
-			except FileNotFoundError:
-				pass
-
-			os.rename('ny_curve.csv', 'data.csv')
-			plot(2)
-
-		elif state != "US" and graph_type == "1":
+		
+		if state != "US" and graph_type == "1":
 			try:
 				os.remove('data.csv')
 			except FileNotFoundError:
@@ -199,7 +191,7 @@ def main():
 			df.drop('state', axis=1, inplace=True)
 			df.drop('fips', axis=1, inplace=True)
 			df.to_csv('data.csv', index=False)
-			plot(1)
+			plot(1, abbrev_to_state[state])
 
 		elif state == "US" and graph_type == "1":
 			try:
@@ -207,13 +199,59 @@ def main():
 			except FileNotFoundError:
 				pass
 
-			os.rename('raw_us_data.csv','data.csv')
-			plot(1)
+			shutil.copy2('raw_us_data.csv', 'data.csv')
+			plot(1, abbrev_to_state[state])
+
+		elif state == "US" and graph_type == "2":
+			try:
+				os.remove('data.csv')
+			except FileNotFoundError:
+				pass
+
+			df_1 = pd.read_csv('raw_us_data.csv')
+			df_2 = df_1.loc[:,['cases', 'deaths']].diff()
+			df_1.drop(['cases', 'deaths'], axis=1, inplace=True)
+			df_merged = pd.concat([df_1, df_2], axis=1)
+			df_merged.dropna(inplace=True)
+			df_merged.astype({"cases":'int', "deaths":'int'})
+			df_merged.to_csv('data.csv', index=False)
+			plot(2, abbrev_to_state[state])
+
+		elif state == "NY" and graph_type == "2":
+			try:
+				os.remove('data.csv')
+			except FileNotFoundError:
+				pass
+
+			shutil.copy2('ny_curve.csv', 'data.csv')
+			plot(2, abbrev_to_state[state])
+
+		elif (state != "NY" and state != "US") and graph_type == "2":
+			try:
+				os.remove('data.csv')
+			except FileNotFoundError:
+				pass
+
+			df_1 = pd.read_csv('raw_states_data.csv')
+			df_1.drop(df_1.index[df_1['state'] != abbrev_to_state[state]], inplace=True)
+			df_1.drop('state', axis=1, inplace=True)
+			df_1.drop('fips', axis=1, inplace=True)
+			df_2 = df_1.loc[:,['cases', 'deaths']].diff()
+			df_1.drop(['cases', 'deaths'], axis=1, inplace=True)
+			df_merged = pd.concat([df_1, df_2], axis=1)
+			df_merged.dropna(inplace=True)
+			df_merged.astype({"cases":'int', "deaths":'int'})
+			df_merged.to_csv('data.csv', index=False)
+			plot(2, abbrev_to_state[state])
 
 		tkMessageBox.showinfo("Success", "GIF Successfully Generated!")
 
-	except:
-		tkMessageBox.showerror("Error", "GIF Generation Failed. Please Try Again.")
+		if graph_type == 1: os.startfile('graph_cumm.gif')
+		elif graph_type == 2: os.startfile('graph_noncumm.gif')
+
+	except Exception as e:
+		tkMessageBox.showerror("Error", f"GIF Generation Failed. Please Try Again.\n\nMore Info: {e}")
+
 
 if __name__ == '__main__':
 	# popup tkinter input dialog

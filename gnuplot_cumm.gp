@@ -5,7 +5,7 @@ set datafile separator ','
 set xdata time
 set timefmt '%Y-%m-%d'
 set xtics rotate
-set title '2020 COVID-19 STATS OVER TIME (CUMULATIVE)'
+set title 'CUMMULATIVE COVID-19 STATS FOR '.state
 set xlabel 'DATE'
 set ylabel 'INFECTIONS/DEATHS'
 do for [ii=1:num_lines] {
