@@ -47,7 +47,7 @@ class MainDialog(tk_input.Dialog): # Overwritten
         else:
             return 1
 
-class Spinner:
+class Spinner: # credit to Ruslan Dautkhanov --> https://github.com/Tagar/stuff/blob/master/spinner.py
 
     def __init__(self, message, delay=0.1):
         self.spinner = itertools.cycle(['-', '/', '|', '\\'])
@@ -119,27 +119,47 @@ def download_csv(response, filename):
 
 def generate_gif(graph_type, state_full):
 
-	the_void = '' # a place for gnuplot warnings to be sent
+	the_void = '' # a place for gnuplot warning messages to be sent
+	num_lines = ''
+	cases = ''
+	deaths = ''
+	hosp = ''
+	df = pd.read_csv('data.csv')
 
+	# initialize variables
 	if os.name == 'nt': # if OS is Windows
 		the_void = "> NUL 2>&1"
 	else:
 		the_void = "2>/dev/null"
 
+	with open('data.csv', 'r') as file:
+		num_lines = sum(1 for line in file)
+
 	if graph_type == 1:
-		with open('data.csv', 'r') as file:
-			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
-								-e \"state=\'{state_full.upper()}\'\" gnuplot_cumm.gp {the_void}")
+		for item in df['cases']: cases += (' ' + str(item))
+		for item in df['deaths']: deaths += (' ' + str(item))
+		os.system(f"gnuplot -e \"num_lines={num_lines}\" \
+							-e \"cases = \'{cases}\'\" \
+							-e \"deaths = \'{deaths}\'\" \
+							-e \"state=\'{state_full.upper()}\'\" gnuplot_cumm.gp {the_void}")
 
 	elif graph_type == 2 and state_full == "New York":
-		with open('data.csv', 'r') as file:
-			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
-								-e \"state=\'{state_full.upper()}\'\" gnuplot_ny_noncumm.gp {the_void}")
+		for item in df['CASE_COUNT']: cases += (' ' + str(item))
+		for item in df['DEATH_COUNT']: deaths += (' ' + str(item))
+		for item in df['HOSPITALIZED_COUNT']: hosp += (' ' + str(item))
+		os.system(f"gnuplot -e \"num_lines={num_lines}\" \
+							-e \"cases = \'{cases}\'\" \
+							-e \"deaths = \'{deaths}\'\" \
+							-e \"hosp = \'{hosp}\'\" \
+							-e \"state=\'{state_full.upper()}\'\" gnuplot_ny_noncumm.gp {the_void}")
 
 	elif graph_type == 2:
-		with open('data.csv', 'r') as file:
-			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
-								-e \"state=\'{state_full.upper()}\'\" gnuplot_noncumm.gp {the_void}")
+		for item in df['cases']: cases += (' ' + str(item))
+		for item in df['deaths']: deaths += (' ' + str(item))
+		os.system(f"gnuplot -e \"num_lines={num_lines}\" \
+							-e \"cases = \'{cases}\'\" \
+							-e \"deaths = \'{deaths}\'\" \
+							-e \"state=\'{state_full.upper()}\'\" gnuplot_noncumm.gp {the_void}")
 
 def display_gif(graph_file):
 
@@ -235,7 +255,7 @@ def main():
 		filename = 'ny_curve.csv'
 		download_csv(response_ny_curve, filename)
 
-		# get user input from dialog
+		# get user input from dialog window
 		try:
 			state = window.result[0].replace(' ', '').upper()
 			graph_type = window.result[1]
@@ -316,6 +336,7 @@ def main():
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(2, abbrev_to_state[state])
 
+		print() # formatting
 		messagebox.showinfo("Success", "GIF Successfully Generated!")
 
 		if graph_type == 1:
