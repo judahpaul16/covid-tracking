@@ -6,6 +6,8 @@ import pandas as pd
 from datetime import date
 import urllib.request
 import traceback
+import itertools
+import threading
 import pathlib
 import base64
 import shutil
@@ -45,6 +47,52 @@ class MainDialog(tk_input.Dialog): # Overwritten
         else:
             return 1
 
+class Spinner:
+
+    def __init__(self, message, delay=0.1):
+        self.spinner = itertools.cycle(['-', '/', '|', '\\'])
+        self.delay = delay
+        self.busy = False
+        self.spinner_visible = False
+        sys.stdout.write(message)
+
+    def write_next(self):
+        with self._screen_lock:
+            if not self.spinner_visible:
+                sys.stdout.write(next(self.spinner))
+                self.spinner_visible = True
+                sys.stdout.flush()
+
+    def remove_spinner(self, cleanup=False):
+        with self._screen_lock:
+            if self.spinner_visible:
+                sys.stdout.write('\b')
+                self.spinner_visible = False
+                if cleanup:
+                    sys.stdout.write(' ')
+                    sys.stdout.write('\r')
+                sys.stdout.flush()
+
+    def spinner_task(self):
+        while self.busy:
+            self.write_next()
+            time.sleep(self.delay)
+            self.remove_spinner()
+
+    def __enter__(self):
+        if sys.stdout.isatty():
+            self._screen_lock = threading.Lock()
+            self.busy = True
+            self.thread = threading.Thread(target=self.spinner_task)
+            self.thread.start()
+
+    def __exit__(self, exception, value, tb):
+        if sys.stdout.isatty():
+            self.busy = False
+            self.remove_spinner(cleanup=True)
+        else:
+            sys.stdout.write('\r')
+
 # centers a tkinter window
 def center_window(master):
 
@@ -71,20 +119,27 @@ def download_csv(response, filename):
 
 def generate_gif(graph_type, state_full):
 
+	the_void = '' # a place for gnuplot warnings to be sent
+
+	if os.name == 'nt': # if OS is Windows
+		the_void = "> NUL 2>&1"
+	else:
+		the_void = "2>/dev/null"
+
 	if graph_type == 1:
 		with open('data.csv', 'r') as file:
 			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
-								-e \"state=\'{state_full.upper()}\'\" gnuplot_cumm.gp")
+								-e \"state=\'{state_full.upper()}\'\" gnuplot_cumm.gp {the_void}")
 
 	elif graph_type == 2 and state_full == "New York":
 		with open('data.csv', 'r') as file:
 			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
-								-e \"state=\'{state_full.upper()}\'\" gnuplot_ny_noncumm.gp")
+								-e \"state=\'{state_full.upper()}\'\" gnuplot_ny_noncumm.gp {the_void}")
 
 	elif graph_type == 2:
 		with open('data.csv', 'r') as file:
 			os.system(f"gnuplot -e \"num_lines={sum(1 for line in file)}\" \
-								-e \"state=\'{state_full.upper()}\'\" gnuplot_noncumm.gp")
+								-e \"state=\'{state_full.upper()}\'\" gnuplot_noncumm.gp {the_void}")
 
 def display_gif(graph_file):
 
@@ -203,7 +258,8 @@ def main():
 			df.drop('state', axis=1, inplace=True)
 			df.drop('fips', axis=1, inplace=True)
 			df.to_csv('data.csv', index=False)
-			generate_gif(1, abbrev_to_state[state])
+			with Spinner('\nYour graph will appear shortly...'):
+				generate_gif(1, abbrev_to_state[state])
 
 		elif state == "US" and graph_type == 1:
 			try:
@@ -212,7 +268,8 @@ def main():
 				pass
 
 			shutil.copy2('raw_us_data.csv', 'data.csv')
-			generate_gif(1, abbrev_to_state[state])
+			with Spinner('\nYour graph will appear shortly...'):
+				generate_gif(1, abbrev_to_state[state])
 
 		elif state == "US" and graph_type == 2:
 			try:
@@ -227,7 +284,8 @@ def main():
 			df_merged.dropna(inplace=True)
 			df_merged.astype({"cases":'int', "deaths":'int'})
 			df_merged.to_csv('data.csv', index=False)
-			generate_gif(2, abbrev_to_state[state])
+			with Spinner('\nYour graph will appear shortly...'):
+				generate_gif(2, abbrev_to_state[state])
 
 		elif state == "NY" and graph_type == 2:
 			try:
@@ -236,7 +294,8 @@ def main():
 				pass
 
 			shutil.copy2('ny_curve.csv', 'data.csv')
-			generate_gif(2, abbrev_to_state[state])
+			with Spinner('\nYour graph will appear shortly...'):
+				generate_gif(2, abbrev_to_state[state])
 
 		elif (state != "NY" and state != "US") and graph_type == 2:
 			try:
@@ -254,7 +313,8 @@ def main():
 			df_merged.dropna(inplace=True)
 			df_merged.astype({"cases":'int', "deaths":'int'})
 			df_merged.to_csv('data.csv', index=False)
-			generate_gif(2, abbrev_to_state[state])
+			with Spinner('\nYour graph will appear shortly...'):
+				generate_gif(2, abbrev_to_state[state])
 
 		messagebox.showinfo("Success", "GIF Successfully Generated!")
 
