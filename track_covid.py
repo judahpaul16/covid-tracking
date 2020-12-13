@@ -154,8 +154,8 @@ def generate_gif(graph_type, state_full):
 							-e \"state=\'{state_full.upper()}\'\" gnuplot_ny_noncumm.gp {the_void}")
 
 	elif graph_type == 2:
-		for item in df['cases']: cases += (' ' + str(item))
-		for item in df['deaths']: deaths += (' ' + str(item))
+		for item in df['cases']: cases += (' ' + str(int(item)))
+		for item in df['deaths']: deaths += (' ' + str(int(item)))
 		os.system(f"gnuplot -e \"num_lines={num_lines}\" \
 							-e \"cases = \'{cases}\'\" \
 							-e \"deaths = \'{deaths}\'\" \
