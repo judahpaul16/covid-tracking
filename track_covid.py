@@ -4,7 +4,7 @@ from tkinter import simpledialog as tk_input
 import tkinter.messagebox as messagebox
 import pandas as pd
 from datetime import date
-import urllib.request
+from urllib.request import urlopen
 import traceback
 import itertools
 import threading
@@ -39,10 +39,10 @@ class MainDialog(tk_input.Dialog): # Overridden
 
     # Overridden: this executes upon hitting 'Okay'
     def validate(self):
-        state = str(self.e1.get())
+        abbrev = str(self.e1.get())
         graph_type = int(self.e2.get())
-        self.result = state, graph_type
-        if state == '' or (graph_type != 1 and graph_type != 2):
+        self.result = abbrev, graph_type
+        if abbrev == '' or (graph_type != 1 and graph_type != 2):
             return 0
         else:
             return 1
@@ -51,48 +51,48 @@ class Spinner:
 	# class borrowed from Ruslan Dautkhanov 
 	# original code --> https://github.com/Tagar/stuff/blob/master/spinner.py
 	def __init__(self, message, delay=0.1):
-        self.spinner = itertools.cycle(['-', '/', '|', '\\'])
-        self.delay = delay
-        self.busy = False
-        self.spinner_visible = False
-        sys.stdout.write(message)
+		self.spinner = itertools.cycle(['-', '/', '|', '\\'])
+		self.delay = delay
+		self.busy = False
+		self.spinner_visible = False
+		sys.stdout.write(message)
 
-    def write_next(self):
-        with self._screen_lock:
-            if not self.spinner_visible:
-                sys.stdout.write(next(self.spinner))
-                self.spinner_visible = True
-                sys.stdout.flush()
+	def write_next(self):
+		with self._screen_lock:
+			if not self.spinner_visible:
+				sys.stdout.write(next(self.spinner))
+				self.spinner_visible = True
+				sys.stdout.flush()
 
-    def remove_spinner(self, cleanup=False):
-        with self._screen_lock:
-            if self.spinner_visible:
-                sys.stdout.write('\b')
-                self.spinner_visible = False
-                if cleanup:
-                    sys.stdout.write(' ')
-                    sys.stdout.write('\r')
-                sys.stdout.flush()
+	def remove_spinner(self, cleanup=False):
+		with self._screen_lock:
+			if self.spinner_visible:
+				sys.stdout.write('\b')
+				self.spinner_visible = False
+				if cleanup:
+					sys.stdout.write(' ')
+					sys.stdout.write('\r')
+				sys.stdout.flush()
 
-    def spinner_task(self):
-        while self.busy:
-            self.write_next()
-            time.sleep(self.delay)
-            self.remove_spinner()
+	def spinner_task(self):
+		while self.busy:
+			self.write_next()
+			time.sleep(self.delay)
+			self.remove_spinner()
 
-    def __enter__(self):
-        if sys.stdout.isatty():
-            self._screen_lock = threading.Lock()
-            self.busy = True
-            self.thread = threading.Thread(target=self.spinner_task)
-            self.thread.start()
+	def __enter__(self):
+		if sys.stdout.isatty():
+			self._screen_lock = threading.Lock()
+			self.busy = True
+			self.thread = threading.Thread(target=self.spinner_task)
+			self.thread.start()
 
-    def __exit__(self, exception, value, tb):
-        if sys.stdout.isatty():
-            self.busy = False
-            self.remove_spinner(cleanup=True)
-        else:
-            sys.stdout.write('\r')
+	def __exit__(self, exception, value, tb):
+		if sys.stdout.isatty():
+			self.busy = False
+			self.remove_spinner(cleanup=True)
+		else:
+			sys.stdout.write('\r')
 
 # centers a tkinter window
 def center_window(master):
@@ -118,8 +118,8 @@ def download_csv(response, filename):
 		for line in lines:
 			file.write(line + "\n")
 
-def generate_gif(graph_type, state_full):
-
+def generate_gif(graph_type, state):
+	# declare variables
 	the_void = '' 	# a place for gnuplot warning messages to be sent
 	num_lines = ''	# number of lines of data
 	cases = ''		# display data for graph legend
@@ -142,9 +142,9 @@ def generate_gif(graph_type, state_full):
 		os.system(f"gnuplot -e \"num_lines={num_lines}\" \
 							-e \"cases = \'{cases}\'\" \
 							-e \"deaths = \'{deaths}\'\" \
-							-e \"state=\'{state_full.upper()}\'\" gnuplot_cumm.gp {the_void}")
+							-e \"state=\'{state.upper()}\'\" gnuplot_cumm.gp {the_void}")
 
-	elif graph_type == 2 and state_full == "New York":
+	elif graph_type == 2 and state == "New York":
 		for item in df['CASE_COUNT']: cases += (' ' + str(item))
 		for item in df['DEATH_COUNT']: deaths += (' ' + str(item))
 		for item in df['HOSPITALIZED_COUNT']: hosp += (' ' + str(item))
@@ -152,7 +152,7 @@ def generate_gif(graph_type, state_full):
 							-e \"cases = \'{cases}\'\" \
 							-e \"deaths = \'{deaths}\'\" \
 							-e \"hosp = \'{hosp}\'\" \
-							-e \"state=\'{state_full.upper()}\'\" gnuplot_ny_noncumm.gp {the_void}")
+							-e \"state=\'{state.upper()}\'\" gnuplot_ny_noncumm.gp {the_void}")
 
 	elif graph_type == 2:
 		for item in df['cases']: cases += (' ' + str(int(item)))
@@ -160,7 +160,7 @@ def generate_gif(graph_type, state_full):
 		os.system(f"gnuplot -e \"num_lines={num_lines}\" \
 							-e \"cases = \'{cases}\'\" \
 							-e \"deaths = \'{deaths}\'\" \
-							-e \"state=\'{state_full.upper()}\'\" gnuplot_noncumm.gp {the_void}")
+							-e \"state=\'{state.upper()}\'\" gnuplot_noncumm.gp {the_void}")
 
 def display_gif(graph_file):
 
@@ -177,7 +177,7 @@ def Exit():
 def main():
 	 
     # initialize input variables
-	state = '' 
+	abbrev = '' 
 	graph_type = ''
 	# state-abbreviation definitions
 	state_to_abbrev = {
@@ -244,46 +244,46 @@ def main():
 
 	try:
 		# download data files
-		response_us = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us.csv').read())
+		response_us = str(urlopen('https://github.com/nytimes/covid-19-data/raw/master/us.csv').read())
 		filename = 'raw_us_data.csv'
 		download_csv(response_us, filename)
 
-		response_states = str(urllib.request.urlopen('https://github.com/nytimes/covid-19-data/raw/master/us-states.csv').read())
+		response_states = str(urlopen('https://github.com/nytimes/covid-19-data/raw/master/us-states.csv').read())
 		filename = 'raw_states_data.csv'
 		download_csv(response_states, filename)
 
-		response_ny_curve = str(urllib.request.urlopen('https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv').read())
+		response_ny_curve = str(urlopen('https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv').read())
 		filename = 'ny_curve.csv'
 		download_csv(response_ny_curve, filename)
 
 		# get user input from dialog window
 		try:
-			state = window.result[0].replace(' ', '').upper()
-			graph_type = window.result[1]
+			abbrev = input_box.result[0].replace(' ', '').upper()
+			graph_type = input_box.result[1]
 		except TypeError:
 			pass
 
 		# end program upon hitting 'Cancel' or [X]
-		if state == '' or (graph_type != 1 and graph_type != 2):
+		if abbrev == '' or (graph_type != 1 and graph_type != 2):
 			root.destroy()
 			raise SystemExit
 		
 		# decision tree to generate the GIF
-		if state != "US" and graph_type == 1:
+		if abbrev != "US" and graph_type == 1:
 			try:
 				os.remove('data.csv')
 			except FileNotFoundError:
 				pass
 
 			df = pd.read_csv('raw_states_data.csv')
-			df.drop(df.index[df['state'] != abbrev_to_state[state]], inplace=True)
+			df.drop(df.index[df['state'] != abbrev_to_state[abbrev]], inplace=True)
 			df.drop('state', axis=1, inplace=True)
 			df.drop('fips', axis=1, inplace=True)
 			df.to_csv('data.csv', index=False)
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_gif(1, abbrev_to_state[state])
+				generate_gif(1, abbrev_to_state[abbrev])
 
-		elif state == "US" and graph_type == 1:
+		elif abbrev == "US" and graph_type == 1:
 			try:
 				os.remove('data.csv')
 			except FileNotFoundError:
@@ -291,9 +291,9 @@ def main():
 
 			shutil.copy2('raw_us_data.csv', 'data.csv')
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_gif(1, abbrev_to_state[state])
+				generate_gif(1, abbrev_to_state[abbrev])
 
-		elif state == "US" and graph_type == 2:
+		elif abbrev == "US" and graph_type == 2:
 			try:
 				os.remove('data.csv')
 			except FileNotFoundError:
@@ -307,9 +307,9 @@ def main():
 			df_merged.astype({"cases":'int', "deaths":'int'})
 			df_merged.to_csv('data.csv', index=False)
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_gif(2, abbrev_to_state[state])
+				generate_gif(2, abbrev_to_state[abbrev])
 
-		elif state == "NY" and graph_type == 2:
+		elif abbrev == "NY" and graph_type == 2:
 			try:
 				os.remove('data.csv')
 			except FileNotFoundError:
@@ -317,16 +317,16 @@ def main():
 
 			shutil.copy2('ny_curve.csv', 'data.csv')
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_gif(2, abbrev_to_state[state])
+				generate_gif(2, abbrev_to_state[abbrev])
 
-		elif (state != "NY" and state != "US") and graph_type == 2:
+		elif abbrev != "US" and graph_type == 2:
 			try:
 				os.remove('data.csv')
 			except FileNotFoundError:
 				pass
 
 			df_1 = pd.read_csv('raw_states_data.csv')
-			df_1.drop(df_1.index[df_1['state'] != abbrev_to_state[state]], inplace=True)
+			df_1.drop(df_1.index[df_1['state'] != abbrev_to_state[abbrev]], inplace=True)
 			df_1.drop('state', axis=1, inplace=True)
 			df_1.drop('fips', axis=1, inplace=True)
 			df_2 = df_1.loc[:,['cases', 'deaths']].diff()
@@ -336,7 +336,7 @@ def main():
 			df_merged.astype({"cases":'int', "deaths":'int'})
 			df_merged.to_csv('data.csv', index=False)
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_gif(2, abbrev_to_state[state])
+				generate_gif(2, abbrev_to_state[abbrev])
 
 		print() # optional cmd formatting
 		messagebox.showinfo("Success", "GIF Successfully Generated!")
