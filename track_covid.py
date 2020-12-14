@@ -17,7 +17,8 @@ import sys
 import csv
 import re
 
-class MainDialog(tk_input.Dialog): # Overridden
+class MainDialog(tk_input.Dialog):
+	# Inherits tkinter's simpledialog Dialog Class
     # organize the layout of the input box
     def body(self, master):
         self.winfo_toplevel().title("COVID Tracking With GNUPlot")
@@ -37,8 +38,7 @@ class MainDialog(tk_input.Dialog): # Overridden
         self.e2.grid(row=4, column=1, sticky='we')
         return self.e1 # initial focus
 
-    # Overridden: this executes upon hitting 'Okay'
-    def validate(self):
+    def validate(self): # executes upon hitting 'Okay'
         abbrev = str(self.e1.get())
         graph_type = int(self.e2.get())
         self.result = abbrev, graph_type
@@ -94,7 +94,7 @@ class Spinner:
 		else:
 			sys.stdout.write('\r')
 
-def timer(original_func): # decorator function for displaying runtime
+def timer(original_func): # decorator function for displaying the program's runtime
 	
 	def wrapper(*args, **kwargs):
 		t1 = time.time()
@@ -105,8 +105,7 @@ def timer(original_func): # decorator function for displaying runtime
 
 	return wrapper
 
-# centers a tkinter window
-def center_window(master):
+def center_window(master): # centers a tkinter window
 
     master.withdraw()
     master.update_idletasks()
@@ -122,14 +121,14 @@ def center_window(master):
     master.resizable(False, False)
     master.deiconify()
 
-def download_csv(response, filename):
+def download_csv(url, filename):
 
+	response = str(urlopen(url).read())
 	lines = str(response).strip("b'").replace("\\r", "").split("\\n")
 	with open(filename, 'w') as file:
 		for line in lines:
 			file.write(line + "\n")
 
-@timer
 def generate_gif(graph_type, state):
 	# declare variables
 	the_void = '' 	# a place for gnuplot warning messages to be sent
@@ -186,6 +185,7 @@ def Exit():
 	root.destroy()
 	raise SystemExit
 
+@timer
 def main():
 	 
     # initialize input variables
@@ -256,17 +256,17 @@ def main():
 
 	try:
 		# download data files
-		response_us = str(urlopen('https://github.com/nytimes/covid-19-data/raw/master/us.csv').read())
-		filename = 'raw_us_data.csv'
-		download_csv(response_us, filename)
+		url = 'https://github.com/nytimes/covid-19-data/raw/master/us.csv'
+		dest_filename = 'raw_us_data.csv'
+		download_csv(url, dest_filename)
 
-		response_states = str(urlopen('https://github.com/nytimes/covid-19-data/raw/master/us-states.csv').read())
-		filename = 'raw_states_data.csv'
-		download_csv(response_states, filename)
+		url = 'https://github.com/nytimes/covid-19-data/raw/master/us-states.csv'
+		dest_filename = 'raw_states_data.csv'
+		download_csv(url, dest_filename)
 
-		response_ny_curve = str(urlopen('https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv').read())
-		filename = 'ny_curve.csv'
-		download_csv(response_ny_curve, filename)
+		url = 'https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv'
+		dest_filename = 'ny_curve.csv'
+		download_csv(url, dest_filename)
 
 		# get user input from dialog window
 		try:
@@ -350,11 +350,6 @@ def main():
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(2, abbrev_to_state[abbrev])
 
-	except Exception as e:
-		messagebox.showerror("Error: GIF Generation Failed.", f"More Information:\n\n{traceback.format_exc()}")
-
-	finally:
-
 		messagebox.showinfo("Success", "GIF Successfully Generated!")
 
 		# popup the GIF
@@ -362,6 +357,9 @@ def main():
 			display_gif('graph_cumm.gif')
 		elif graph_type == 2:
 			display_gif('graph_noncumm.gif')
+
+	except Exception as e:
+		messagebox.showerror("Error: GIF Generation Failed.", f"More Information:\n\n{traceback.format_exc()}")
 
 if __name__ == '__main__':
 
@@ -371,5 +369,5 @@ if __name__ == '__main__':
 	root.update()
 	root.withdraw()
 	input_box = MainDialog(root)
-	# begin analysis
+	
 	main()
