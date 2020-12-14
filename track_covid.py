@@ -94,6 +94,17 @@ class Spinner:
 		else:
 			sys.stdout.write('\r')
 
+def timer(original_func): # decorator function for displaying runtime
+	
+	def wrapper(*args, **kwargs):
+		t1 = time.time()
+		result = original_func(*args, **kwargs)
+		t2 = time.time() - t1
+		print(f'\n\n[Finished in {t2} sec]')
+		return result
+
+	return wrapper
+
 # centers a tkinter window
 def center_window(master):
 
@@ -118,6 +129,7 @@ def download_csv(response, filename):
 		for line in lines:
 			file.write(line + "\n")
 
+@timer
 def generate_gif(graph_type, state):
 	# declare variables
 	the_void = '' 	# a place for gnuplot warning messages to be sent
@@ -338,7 +350,11 @@ def main():
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(2, abbrev_to_state[abbrev])
 
-		print() # optional cmd formatting
+	except Exception as e:
+		messagebox.showerror("Error: GIF Generation Failed.", f"More Information:\n\n{traceback.format_exc()}")
+
+	finally:
+
 		messagebox.showinfo("Success", "GIF Successfully Generated!")
 
 		# popup the GIF
@@ -346,9 +362,6 @@ def main():
 			display_gif('graph_cumm.gif')
 		elif graph_type == 2:
 			display_gif('graph_noncumm.gif')
-
-	except Exception as e:
-		messagebox.showerror("Error: GIF Generation Failed.", f"More Information:\n\n{traceback.format_exc()}")
 
 if __name__ == '__main__':
 
