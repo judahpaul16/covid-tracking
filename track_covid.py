@@ -1,8 +1,7 @@
+from state_dict import abbrev_to_state, state_to_abbrev
 from spinner import Spinner
 from dialog import MainDialog, center_window
-from tkinter import *
-import tkinter as tk
-import tkinter.messagebox as messagebox
+from tkinter import Tk, messagebox
 import pandas as pd
 from datetime import date
 from urllib.request import urlopen
@@ -96,68 +95,6 @@ def main():
     # initialize input variables
 	abbrev = '' 
 	graph_type = ''
-	# state-abbreviation definitions
-	state_to_abbrev = {
-		'Alabama': 'AL',
-		'Alaska': 'AK',
-		'American Samoa': 'AS',
-		'Arizona': 'AZ',
-		'Arkansas': 'AR',
-		'California': 'CA',
-		'Colorado': 'CO',
-		'Connecticut': 'CT',
-		'Delaware': 'DE',
-		'District of Columbia': 'DC',
-		'Florida': 'FL',
-		'Georgia': 'GA',
-		'Guam': 'GU',
-		'Hawaii': 'HI',
-		'Idaho': 'ID',
-		'Illinois': 'IL',
-		'Indiana': 'IN',
-		'Iowa': 'IA',
-		'Kansas': 'KS',
-		'Kentucky': 'KY',
-		'Louisiana': 'LA',
-		'Maine': 'ME',
-		'Maryland': 'MD',
-		'Massachusetts': 'MA',
-		'Michigan': 'MI',
-		'Minnesota': 'MN',
-		'Mississippi': 'MS',
-		'Missouri': 'MO',
-		'Montana': 'MT',
-		'Nebraska': 'NE',
-		'Nevada': 'NV',
-		'New Hampshire': 'NH',
-		'New Jersey': 'NJ',
-		'New Mexico': 'NM',
-		'New York': 'NY',
-		'North Carolina': 'NC',
-		'North Dakota': 'ND',
-		'Northern Mariana Islands':'MP',
-		'Ohio': 'OH',
-		'Oklahoma': 'OK',
-		'Oregon': 'OR',
-		'Pennsylvania': 'PA',
-		'Puerto Rico': 'PR',
-		'Rhode Island': 'RI',
-		'South Carolina': 'SC',
-		'South Dakota': 'SD',
-		'Tennessee': 'TN',
-		'Texas': 'TX',
-		'Utah': 'UT',
-		'United States' : 'US',
-		'Vermont': 'VT',
-		'Virgin Islands': 'VI',
-		'Virginia': 'VA',
-		'Washington': 'WA',
-		'West Virginia': 'WV',
-		'Wisconsin': 'WI',
-		'Wyoming': 'WY'
-	}
-
-	abbrev_to_state = dict(map(reversed, state_to_abbrev.items()))
 
 	try:
 		# download data files
