@@ -13,7 +13,6 @@ import time
 import os
 import sys
 import csv
-import re
 
 def download_csv(url, filename):
 	response = str(urlopen(url).read())
