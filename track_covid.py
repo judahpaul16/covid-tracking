@@ -1,13 +1,12 @@
+from spinner import Spinner
+from dialog import MainDialog, center_window
 from tkinter import *
 import tkinter as tk
-from tkinter import simpledialog as tk_input
 import tkinter.messagebox as messagebox
 import pandas as pd
 from datetime import date
 from urllib.request import urlopen
 import traceback
-import itertools
-import threading
 import pathlib
 import base64
 import shutil
@@ -16,110 +15,6 @@ import os
 import sys
 import csv
 import re
-
-class MainDialog(tk_input.Dialog):
-	# Inherits tkinter's simpledialog Dialog Class
-    # organize the layout of the input box
-    def body(self, master):
-        self.winfo_toplevel().title("COVID Tracking With GNUPlot")
-
-        Label(master, text="Input Below the State Abbreviation and Graph\nType For Visualization",
-            font=('Roboto', 12, 'bold')).grid(row=0, column=0, columnspan=2, rowspan=2)
-        Label(master, text="", font=('Roboto', 12)).grid(row=1)
-        Label(master, text="State   - - - - -> ", font=('Roboto', 10)).grid(row=2)
-        Label(master, text="\"NY\" for New York, \"US\" for United States", font=('Roboto', 8)).grid(row=3, column=1)
-        Label(master, text="Graph Type  - - - ->", font=('Roboto', 10)).grid(row=4)
-        Label(master, text="\"1\" for Cummulative, \"2\" for Non-cummulative", font=('Roboto', 8)).grid(row=5, column=1)
-
-        self.e1 = Entry(master, textvariable=StringVar())
-        self.e2 = Entry(master, textvariable=StringVar())
-
-        self.e1.grid(row=2, column=1, sticky='we')
-        self.e2.grid(row=4, column=1, sticky='we')
-        return self.e1 # initial focus
-
-    def validate(self): # executes upon hitting 'Okay'
-        abbrev = str(self.e1.get())
-        graph_type = int(self.e2.get())
-        self.result = abbrev, graph_type
-        if abbrev == '' or (graph_type != 1 and graph_type != 2):
-            return 0
-        else:
-            return 1
-
-class Spinner:
-	# class borrowed from Ruslan Dautkhanov 
-	# original code --> https://github.com/Tagar/stuff/blob/master/spinner.py
-	def __init__(self, message, delay=0.1):
-		self.spinner = itertools.cycle(['-', '/', '|', '\\'])
-		self.delay = delay
-		self.busy = False
-		self.spinner_visible = False
-		sys.stdout.write(message)
-
-	def write_next(self):
-		with self._screen_lock:
-			if not self.spinner_visible:
-				sys.stdout.write(next(self.spinner))
-				self.spinner_visible = True
-				sys.stdout.flush()
-
-	def remove_spinner(self, cleanup=False):
-		with self._screen_lock:
-			if self.spinner_visible:
-				sys.stdout.write('\b')
-				self.spinner_visible = False
-				if cleanup:
-					sys.stdout.write(' ')
-					sys.stdout.write('\r')
-				sys.stdout.flush()
-
-	def spinner_task(self):
-		while self.busy:
-			self.write_next()
-			time.sleep(self.delay)
-			self.remove_spinner()
-
-	def __enter__(self):
-		if sys.stdout.isatty():
-			self._screen_lock = threading.Lock()
-			self.busy = True
-			self.thread = threading.Thread(target=self.spinner_task)
-			self.thread.start()
-
-	def __exit__(self, exception, value, tb):
-		if sys.stdout.isatty():
-			self.busy = False
-			self.remove_spinner(cleanup=True)
-		else:
-			sys.stdout.write('\r')
-
-def timer(original_func): # decorator function for displaying the program's runtime
-	
-	def wrapper(*args, **kwargs):
-		t1 = time.time()
-		result = original_func(*args, **kwargs)
-		t2 = time.time() - t1
-		print(f'\n\n[Finished in {t2} sec]')
-		return result
-
-	return wrapper
-
-def center_window(master): # centers a tkinter window
-
-    master.withdraw()
-    master.update_idletasks()
-    width = master.winfo_width()
-    frm_width = master.winfo_rootx() - master.winfo_x()
-    win_width = width + 3 * frm_width
-    height = master.winfo_height()
-    titlebar_height = master.winfo_rooty() - master.winfo_y()
-    win_height = height + titlebar_height + frm_width
-    x = master.winfo_screenwidth() // 2 - win_width // 2
-    y = master.winfo_screenheight() // 2 - win_height // 2
-    master.geometry(f'{width}x{height}+{x}+{y}')
-    master.resizable(False, False)
-    master.deiconify()
 
 def download_csv(url, filename):
 
@@ -185,9 +80,19 @@ def Exit():
 	root.destroy()
 	raise SystemExit
 
+def timer(original_func): # decorator function for displaying the program's runtime
+	
+	def wrapper(*args, **kwargs):
+		t1 = time.time()
+		result = original_func(*args, **kwargs)
+		t2 = time.time() - t1
+		print(f'\n\n[Finished in {t2} sec]')
+		return result
+
+	return wrapper
+
 @timer
 def main():
-	 
     # initialize input variables
 	abbrev = '' 
 	graph_type = ''
@@ -362,7 +267,6 @@ def main():
 		messagebox.showerror("Error: GIF Generation Failed.", f"More Information:\n\n{traceback.format_exc()}")
 
 if __name__ == '__main__':
-
 	# popup tkinter input dialog
 	root = Tk()
 	center_window(root)
