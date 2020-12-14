@@ -32,7 +32,6 @@ class MainDialog(tk_input.Dialog):
             return 1
 
 def center_window(master): # centers a tkinter window
-
     master.withdraw()
     master.update_idletasks()
     width = master.winfo_width()

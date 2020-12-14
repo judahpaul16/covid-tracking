@@ -16,7 +16,6 @@ import csv
 import re
 
 def download_csv(url, filename):
-
 	response = str(urlopen(url).read())
 	lines = str(response).strip("b'").replace("\\r", "").split("\\n")
 	with open(filename, 'w') as file:
@@ -68,19 +67,16 @@ def generate_gif(graph_type, state):
 							-e \"state=\'{state.upper()}\'\" gnuplot_noncumm.gp {the_void}")
 
 def display_gif(graph_file):
-
 	if os.name == 'nt': # if Operating System is Windows
 		os.startfile(graph_file)
 	else:
 		os.system(f'xviewer {graph_file}')
 
 def Exit():
-
 	root.destroy()
 	raise SystemExit
 
 def timer(original_func): # decorator function for displaying the program's runtime
-	
 	def wrapper(*args, **kwargs):
 		t1 = time.time()
 		result = original_func(*args, **kwargs)
