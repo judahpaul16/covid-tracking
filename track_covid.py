@@ -17,7 +17,7 @@ import sys
 import csv
 import re
 
-class MainDialog(tk_input.Dialog): # Overwritten
+class MainDialog(tk_input.Dialog): # Overridden
     # organize the layout of the input box
     def body(self, master):
         self.winfo_toplevel().title("COVID Tracking With GNUPlot")
@@ -37,7 +37,7 @@ class MainDialog(tk_input.Dialog): # Overwritten
         self.e2.grid(row=4, column=1, sticky='we')
         return self.e1 # initial focus
 
-    # Overwritten: this executes upon hitting 'Okay'
+    # Overridden: this executes upon hitting 'Okay'
     def validate(self):
         state = str(self.e1.get())
         graph_type = int(self.e2.get())
@@ -47,9 +47,10 @@ class MainDialog(tk_input.Dialog): # Overwritten
         else:
             return 1
 
-class Spinner: # credit to Ruslan Dautkhanov --> https://github.com/Tagar/stuff/blob/master/spinner.py
-
-    def __init__(self, message, delay=0.1):
+class Spinner:
+	# class borrowed from Ruslan Dautkhanov 
+	# original code --> https://github.com/Tagar/stuff/blob/master/spinner.py
+	def __init__(self, message, delay=0.1):
         self.spinner = itertools.cycle(['-', '/', '|', '\\'])
         self.delay = delay
         self.busy = False
@@ -119,15 +120,15 @@ def download_csv(response, filename):
 
 def generate_gif(graph_type, state_full):
 
-	the_void = '' # a place for gnuplot warning messages to be sent
-	num_lines = ''
-	cases = ''
-	deaths = ''
-	hosp = ''
+	the_void = '' 	# a place for gnuplot warning messages to be sent
+	num_lines = ''	# number of lines of data
+	cases = ''		# display data for graph legend
+	deaths = '' 	# display data for graph legend
+	hosp = ''		# display data for graph legend
 	df = pd.read_csv('data.csv')
 
 	# initialize variables
-	if os.name == 'nt': # if OS is Windows
+	if os.name == 'nt': # if Operating System is Windows
 		the_void = "> NUL 2>&1"
 	else:
 		the_void = "2>/dev/null"
@@ -163,7 +164,7 @@ def generate_gif(graph_type, state_full):
 
 def display_gif(graph_file):
 
-	if os.name == 'nt': # if OS is Windows
+	if os.name == 'nt': # if Operating System is Windows
 		os.startfile(graph_file)
 	else:
 		os.system(f'xviewer {graph_file}')
@@ -176,9 +177,9 @@ def Exit():
 def main():
 	 
     # initialize input variables
-	state = ''
+	state = '' 
 	graph_type = ''
-	# state definitions
+	# state-abbreviation definitions
 	state_to_abbrev = {
 		'Alabama': 'AL',
 		'Alaska': 'AK',
@@ -267,6 +268,7 @@ def main():
 			root.destroy()
 			raise SystemExit
 		
+		# decision tree to generate the GIF
 		if state != "US" and graph_type == 1:
 			try:
 				os.remove('data.csv')
@@ -336,9 +338,10 @@ def main():
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(2, abbrev_to_state[state])
 
-		print() # formatting
+		print() # optional cmd formatting
 		messagebox.showinfo("Success", "GIF Successfully Generated!")
 
+		# popup the GIF
 		if graph_type == 1:
 			display_gif('graph_cumm.gif')
 		elif graph_type == 2:
@@ -354,6 +357,6 @@ if __name__ == '__main__':
 	center_window(root)
 	root.update()
 	root.withdraw()
-	window = MainDialog(root)
+	input_box = MainDialog(root)
 	# begin analysis
 	main()
