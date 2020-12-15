@@ -1,7 +1,7 @@
-from tkinter import Label, Entry, StringVar
+from tkinter import Label, Entry, StringVar, IntVar
 from tkinter import simpledialog as tk_input
 
-class MainDialog(tk_input.Dialog):
+class InputDialog(tk_input.Dialog):
 	# Inherits tkinter.simpledialog's Dialog Class
     # organize the layout of the input box here
     def body(self, master):
@@ -16,7 +16,7 @@ class MainDialog(tk_input.Dialog):
         Label(master, text="\"1\" for Cummulative, \"2\" for Non-cummulative", font=('Roboto', 8)).grid(row=5, column=1)
 
         self.e1 = Entry(master, textvariable=StringVar())
-        self.e2 = Entry(master, textvariable=StringVar())
+        self.e2 = Entry(master, textvariable=IntVar())
 
         self.e1.grid(row=2, column=1, sticky='we')
         self.e2.grid(row=4, column=1, sticky='we')

@@ -1,18 +1,20 @@
+# ------------------ LOCAL MODULES --------------------
 from state_dict import abbrev_to_state, state_to_abbrev
+from dialog import InputDialog, center_window
 from spinner import Spinner
-from dialog import MainDialog, center_window
+# ----------------- EXTERNAL MODULES ------------------
 from tkinter import Tk, messagebox
-import pandas as pd
-from datetime import date
 from urllib.request import urlopen
+from datetime import date
+import pandas as pd
 import traceback
 import pathlib
 import base64
 import shutil
 import time
-import os
 import sys
 import csv
+import os
 
 def download_csv(url, filename):
 	response = str(urlopen(url).read())
@@ -99,8 +101,12 @@ def main():
 	try:
 		# get user input from dialog window
 		try:
-			abbrev = input_box.result[0].replace(' ', '').upper()
+			tmp = input_box.result[0].replace(' ', '').capitalize()
 			graph_type = input_box.result[1]
+			try:
+				abbrev = state_to_abbrev[tmp].upper()
+			except KeyError:
+				abbrev = tmp.upper()
 		except TypeError:
 			pass
 
@@ -218,6 +224,6 @@ if __name__ == '__main__':
 	center_window(root)
 	root.update()
 	root.withdraw()
-	input_box = MainDialog(root)
+	input_box = InputDialog(root)
 	
 	main()
