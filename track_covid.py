@@ -4,7 +4,7 @@ from dialog import InputDialog, center_window
 from spinner import Spinner
 # ----------------- EXTERNAL MODULES ------------------
 from tkinter import Tk, messagebox
-from urllib.request import urlopen
+from urllib3 import PoolManager
 from datetime import date
 import pandas as pd
 import traceback
@@ -17,7 +17,8 @@ import csv
 import os
 
 def download_csv(url, filename):
-	response = str(urlopen(url).read())
+	http = PoolManager()
+	response = str(http.request('GET', url).data)
 	lines = str(response).strip("b'").replace("\\r", "").split("\\n")
 	with open(filename, 'w') as file:
 		for line in lines:
