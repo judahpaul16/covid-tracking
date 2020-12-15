@@ -22,7 +22,8 @@ class MainDialog(tk_input.Dialog):
         self.e2.grid(row=4, column=1, sticky='we')
         return self.e1 # initial focus
 
-    def validate(self): # executes upon hitting 'Okay'
+    # executes upon hitting 'Okay'
+    def validate(self):
         abbrev = str(self.e1.get())
         graph_type = int(self.e2.get())
         self.result = abbrev, graph_type
@@ -31,7 +32,8 @@ class MainDialog(tk_input.Dialog):
         else:
             return 1
 
-def center_window(master): # centers a tkinter window
+# centers a tkinter window
+def center_window(master):
     master.withdraw()
     master.update_idletasks()
     width = master.winfo_width()

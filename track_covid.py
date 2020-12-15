@@ -24,22 +24,23 @@ def download_csv(url, filename):
 def generate_gif(graph_type, state):
 	# declare variables
 	the_void = '' 	# a place for gnuplot warning messages to be sent
-	num_lines = ''	# number of lines of data
-	cases = ''		# display data for graph legend
-	deaths = '' 	# display data for graph legend
-	hosp = ''		# display data for graph legend
-	df = pd.read_csv('data.csv')
+	num_lines = ''	# number of lines of plot data
+	cases = ''		# plot data for graph legend
+	deaths = '' 	# plot data for graph legend
+	hosp = ''		# plot data for graph legend
 
-	# initialize variables
-	if os.name == 'nt': # if Operating System is Windows
+	# if Operating System is Windows
+	if os.name == 'nt':
 		the_void = "> NUL 2>&1"
+	# otherwise this should work for Linux and MacOS
 	else:
 		the_void = "2>/dev/null"
 
+	df = pd.read_csv('data.csv') # pandas dataframe with plot data
 	with open('data.csv', 'r') as file:
 		num_lines = sum(1 for line in file)
 
-	# plot
+	# decision tree to plot
 	if graph_type == 1:
 		for item in df['cases']: cases += (' ' + str(item))
 		for item in df['deaths']: deaths += (' ' + str(item))
@@ -67,8 +68,10 @@ def generate_gif(graph_type, state):
 							-e \"state=\'{state.upper()}\'\" gnuplot_noncumm.gp {the_void}")
 
 def display_gif(gif_file):
-	if os.name == 'nt': # if Operating System is Windows
+	# if Operating System is Windows
+	if os.name == 'nt':
 		os.startfile(gif_file)
+	# otherwise this should work for Linux and MacOS
 	else:
 		os.system(f'xviewer {gif_file}')
 
@@ -76,7 +79,8 @@ def Exit():
 	root.destroy()
 	raise SystemExit
 
-def timer(original_func): # decorator function for displaying the program's runtime
+# decorator function for displaying the program's runtime
+def timer(original_func):
 	def wrapper(*args, **kwargs):
 		t1 = time.time()
 		result = original_func(*args, **kwargs)
@@ -87,9 +91,10 @@ def timer(original_func): # decorator function for displaying the program's runt
 
 @timer
 def main():
-    # initialize input variables
-	abbrev = '' 
-	graph_type = ''
+    # declare variables
+	abbrev = '' 		# user input: state abbreviation (i.e. 'NY')
+	graph_type = ''		# user input: '1' for cummulative, '2' for noncummulative
+	gif_file = ''		# filename for the output gif
 
 	try:
 		# get user input from dialog window
