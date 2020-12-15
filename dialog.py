@@ -3,7 +3,7 @@ from tkinter import simpledialog as tk_input
 
 class MainDialog(tk_input.Dialog):
 	# Inherits tkinter.simpledialog's Dialog Class
-    # organize the layout of the input box
+    # organize the layout of the input box here
     def body(self, master):
         self.winfo_toplevel().title("COVID Tracking With GNUPlot")
 

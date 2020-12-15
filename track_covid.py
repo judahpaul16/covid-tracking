@@ -39,6 +39,7 @@ def generate_gif(graph_type, state):
 	with open('data.csv', 'r') as file:
 		num_lines = sum(1 for line in file)
 
+	# plot
 	if graph_type == 1:
 		for item in df['cases']: cases += (' ' + str(item))
 		for item in df['deaths']: deaths += (' ' + str(item))
@@ -65,11 +66,11 @@ def generate_gif(graph_type, state):
 							-e \"deaths = \'{deaths}\'\" \
 							-e \"state=\'{state.upper()}\'\" gnuplot_noncumm.gp {the_void}")
 
-def display_gif(graph_file):
+def display_gif(gif_file):
 	if os.name == 'nt': # if Operating System is Windows
-		os.startfile(graph_file)
+		os.startfile(gif_file)
 	else:
-		os.system(f'xviewer {graph_file}')
+		os.system(f'xviewer {gif_file}')
 
 def Exit():
 	root.destroy()
@@ -82,7 +83,6 @@ def timer(original_func): # decorator function for displaying the program's runt
 		t2 = time.time() - t1
 		print(f'\n\n[Finished in {t2} sec]')
 		return result
-
 	return wrapper
 
 @timer
@@ -92,19 +92,6 @@ def main():
 	graph_type = ''
 
 	try:
-		# download data files
-		url = 'https://github.com/nytimes/covid-19-data/raw/master/us.csv'
-		dest_filename = 'raw_us_data.csv'
-		download_csv(url, dest_filename)
-
-		url = 'https://github.com/nytimes/covid-19-data/raw/master/us-states.csv'
-		dest_filename = 'raw_states_data.csv'
-		download_csv(url, dest_filename)
-
-		url = 'https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv'
-		dest_filename = 'ny_curve.csv'
-		download_csv(url, dest_filename)
-
 		# get user input from dialog window
 		try:
 			abbrev = input_box.result[0].replace(' ', '').upper()
@@ -124,11 +111,16 @@ def main():
 			except FileNotFoundError:
 				pass
 
-			df = pd.read_csv('raw_states_data.csv')
+			gif_file = 'graph_cumm.gif'
+			url = 'https://github.com/nytimes/covid-19-data/raw/master/us-states.csv'
+			filename = 'raw_states_data.csv'
+			download_csv(url, filename)
+			df = pd.read_csv(filename)
 			df.drop(df.index[df['state'] != abbrev_to_state[abbrev]], inplace=True)
 			df.drop('state', axis=1, inplace=True)
 			df.drop('fips', axis=1, inplace=True)
 			df.to_csv('data.csv', index=False)
+
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(1, abbrev_to_state[abbrev])
 
@@ -138,7 +130,12 @@ def main():
 			except FileNotFoundError:
 				pass
 
-			shutil.copy2('raw_us_data.csv', 'data.csv')
+			gif_file = 'graph_cumm.gif'
+			url = 'https://github.com/nytimes/covid-19-data/raw/master/us.csv'
+			filename = 'raw_us_data.csv'
+			download_csv(url, filename)
+			shutil.copy2(filename, 'data.csv')
+
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(1, abbrev_to_state[abbrev])
 
@@ -148,13 +145,18 @@ def main():
 			except FileNotFoundError:
 				pass
 
-			df_1 = pd.read_csv('raw_us_data.csv')
-			df_2 = df_1.loc[:,['cases', 'deaths']].diff()
+			gif_file = 'graph_noncumm.gif'
+			url = 'https://github.com/nytimes/covid-19-data/raw/master/us.csv'
+			filename = 'raw_us_data.csv'
+			download_csv(url, filename)
+			df_1 = pd.read_csv(filename)
+			df_2 = df_1.loc[:,['cases', 'deaths']].diff() # cummulative --> noncummulative
 			df_1.drop(['cases', 'deaths'], axis=1, inplace=True)
 			df_merged = pd.concat([df_1, df_2], axis=1)
 			df_merged.dropna(inplace=True)
 			df_merged.astype({"cases":'int', "deaths":'int'})
 			df_merged.to_csv('data.csv', index=False)
+
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(2, abbrev_to_state[abbrev])
 
@@ -164,7 +166,12 @@ def main():
 			except FileNotFoundError:
 				pass
 
-			shutil.copy2('ny_curve.csv', 'data.csv')
+			gif_file = 'graph_noncumm.gif'
+			url = 'https://raw.githubusercontent.com/nychealth/coronavirus-data/master/archive/case-hosp-death.csv'
+			filename = 'ny_curve.csv'
+			download_csv(url, filename)
+			shutil.copy2(filename, 'data.csv')
+
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(2, abbrev_to_state[abbrev])
 
@@ -174,26 +181,28 @@ def main():
 			except FileNotFoundError:
 				pass
 
-			df_1 = pd.read_csv('raw_states_data.csv')
+			gif_file = 'graph_noncumm.gif'
+			url = 'https://github.com/nytimes/covid-19-data/raw/master/us-states.csv'
+			filename = 'raw_states_data.csv'
+			download_csv(url, filename)
+			df_1 = pd.read_csv(filename)
 			df_1.drop(df_1.index[df_1['state'] != abbrev_to_state[abbrev]], inplace=True)
 			df_1.drop('state', axis=1, inplace=True)
 			df_1.drop('fips', axis=1, inplace=True)
-			df_2 = df_1.loc[:,['cases', 'deaths']].diff()
+			df_2 = df_1.loc[:,['cases', 'deaths']].diff() # cummulative --> noncummulative
 			df_1.drop(['cases', 'deaths'], axis=1, inplace=True)
 			df_merged = pd.concat([df_1, df_2], axis=1)
 			df_merged.dropna(inplace=True)
 			df_merged.astype({"cases":'int', "deaths":'int'})
 			df_merged.to_csv('data.csv', index=False)
+
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(2, abbrev_to_state[abbrev])
 
 		messagebox.showinfo("Success", "GIF Successfully Generated!")
 
 		# popup the GIF
-		if graph_type == 1:
-			display_gif('graph_cumm.gif')
-		elif graph_type == 2:
-			display_gif('graph_noncumm.gif')
+		display_gif(gif_file)
 
 	except Exception as e:
 		messagebox.showerror("Error: GIF Generation Failed.", f"More Information:\n\n{traceback.format_exc()}")
