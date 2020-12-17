@@ -5,7 +5,7 @@ This is a python script that grabs the current data on COVID-19 from various Git
 Run this command to install dependencies:
 `pip3 install -r requirements.txt`
 
-![](input_dialog_box.png)
+![](input_dialog.png)
 
 ![](graph_noncumm.gif) ![](graph_cumm.gif)
 
