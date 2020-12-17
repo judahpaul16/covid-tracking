@@ -6,8 +6,7 @@ set xdata time
 set timefmt '%Y-%m-%d'
 set xtics rotate
 set title 'NON-CUMMULATIVE COVID-19 STATS FOR '.state
-set xlabel 'DATE'
-set ylabel 'CASES/DEATHS'
+unset ylabel
 do for [ii=1:num_lines] {
         plot 'data.csv' every ::1::ii u 1:2 w p lw 2 lc 2 title word(cases,ii+1).' NEW CASES ON DAY '.(ii+1), \
         '' every ::1::ii u 1:2 w l lw 5 lc 2 notitle smooth bezier, \
