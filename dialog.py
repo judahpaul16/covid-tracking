@@ -1,33 +1,65 @@
-from tkinter import Label, Entry, StringVar, IntVar
+# ------------------ LOCAL MODULES --------------------
+from state_dict import abbrev_to_state, state_to_abbrev
+# ----------------- BUILT-IN MODULES ------------------
+from tkinter import Label, Entry, Checkbutton, StringVar, IntVar
 from tkinter import simpledialog as tk_input
+from tkinter.ttk import Combobox
+import time
 
 class InputDialog(tk_input.Dialog):
 	# Inherits tkinter.simpledialog's Dialog Class
     # organize the layout of the input box here
     def body(self, master):
+        self.geometry("360x180")
         self.winfo_toplevel().title("COVID Tracking With GNUPlot")
+        states = []
+        for item in state_to_abbrev: states.append(item)
 
-        Label(master, text="Input Below the State Abbreviation and Graph\nType For Visualization",
+        Label(master, text="Select the State and Graph\nType For Visualization",
             font=('Roboto', 12, 'bold')).grid(row=0, column=0, columnspan=2, rowspan=2)
-        Label(master, text="", font=('Roboto', 12)).grid(row=1)
-        Label(master, text="State   - - - - -> ", font=('Roboto', 10)).grid(row=2)
-        Label(master, text="\"NY\" for New York, \"US\" for United States", font=('Roboto', 8)).grid(row=3, column=1)
-        Label(master, text="Graph Type  - - - ->", font=('Roboto', 10)).grid(row=4)
-        Label(master, text="\"1\" for Cummulative, \"2\" for Non-cummulative", font=('Roboto', 8)).grid(row=5, column=1)
-
-        self.e1 = Entry(master, textvariable=StringVar())
-        self.e2 = Entry(master, textvariable=IntVar())
-
+        Label(master, text="State   - - - - -> \n\nGraph Type  - - - ->",
+            font=('Roboto', 10)).grid(row=2, rowspan=3)
+        
+        self.e1 = Combobox(master, textvariable=StringVar(), values=states)
         self.e1.grid(row=2, column=1, sticky='we')
-        self.e2.grid(row=4, column=1, sticky='we')
-        return self.e1 # initial focus
 
+        check_1 = IntVar()
+        check_2 = IntVar()
+        
+        def checkcheckbox():
+            if check_1.get() and check_2.get():
+                warning.config(text="Select one graph type.", fg="red")
+                check_btn1.deselect()
+                check_btn2.deselect()
+                self.e2 = 0
+            elif check_1.get() and not check_2.get():
+                warning.config(text="")
+                self.e2 = 1
+            elif check_2.get() and not check_1.get():
+                warning.config(text="")
+                self.e2 = 2
+        
+        warning = Label(master, text="", font=('roboto', 10))
+        warning.grid(row=5, column=0, columnspan=2)
+        check_btn1 = Checkbutton(master, text = 'Cumm', variable = check_1,
+            onvalue = 1, offvalue = 0, command=checkcheckbox)
+        check_btn2 = Checkbutton(master, text = 'N-Cumm', variable = check_2,
+            onvalue = 1, offvalue = 0, command=checkcheckbox)
+        check_btn1.grid(row=4, column=1, sticky='w')
+        check_btn2.grid(row=4, column=1, sticky='e')
+
+        return self.e1 # initial focus
+        
     # executes upon hitting 'Okay'
     def validate(self):
-        abbrev = str(self.e1.get())
-        graph_type = int(self.e2.get())
-        self.result = abbrev, graph_type
-        if abbrev == '' or (graph_type != 1 and graph_type != 2):
+        try:
+            state = str(self.e1.get())
+            graph_type = int(self.e2)
+            self.result = state, graph_type
+        except AttributeError:
+            pass
+
+        if state == '' or (graph_type != 1 and graph_type != 2):
             return 0
         else:
             return 1

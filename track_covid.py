@@ -2,19 +2,20 @@
 from state_dict import abbrev_to_state, state_to_abbrev
 from dialog import InputDialog, center_window
 from spinner import Spinner
-# ----------------- EXTERNAL MODULES ------------------
+# ----------------- BULT-IN MODULES -------------------
 from tkinter import Tk, messagebox
-from urllib3 import PoolManager
-from datetime import date
-import pandas as pd
 import traceback
-import pathlib
 import base64
 import shutil
 import time
 import sys
 import csv
 import os
+# ----------------- EXTERNAL MODULES ------------------
+from urllib3 import PoolManager
+from datetime import date
+import pandas as pd
+import pathlib
 
 def download_csv(url, filename):
 	http = PoolManager()
@@ -102,14 +103,15 @@ def main():
 	try:
 		# get user input from dialog window
 		try:
-			tmp = input_box.result[0].replace(' ', '').capitalize()
+			state = input_box.result[0].title()
 			graph_type = input_box.result[1]
-			try:
-				abbrev = state_to_abbrev[tmp].upper()
-			except KeyError:
-				abbrev = tmp.upper()
+			abbrev = state_to_abbrev[state]
 		except TypeError:
 			pass
+		except KeyError:
+			abbrev = input_box.result[0].upper()
+			graph_type = input_box.result[1]
+			state = abbrev_to_state[abbrev]
 
 		# end program upon hitting 'Cancel' or [X]
 		if abbrev == '' or (graph_type != 1 and graph_type != 2):
