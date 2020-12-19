@@ -7,7 +7,7 @@ Run this command to install dependencies:
 
 ![](input_dialog.png)
 
-![](graph_noncumm.gif) ![](graph_cumm.gif)
+![](graph_noncumm_example.gif) ![](graph_cumm_example.gif)
 
 # Repos Used:
 
