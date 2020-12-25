@@ -5,7 +5,6 @@ from spinner import Spinner
 # ----------------- BULT-IN MODULES -------------------
 from tkinter import Tk, Toplevel, messagebox
 import traceback
-import base64
 import shutil
 import time
 import sys
