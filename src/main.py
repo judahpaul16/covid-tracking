@@ -91,6 +91,20 @@ def display_gif(gif_file):
 	else:
 		os.system(f'xviewer {gif_file}')
 
+def another_one():
+	another_one = messagebox.askyesno("Info", "Would you like to track another state?")
+	if another_one:
+		top = Toplevel()
+		center_window(top)
+		top.update()
+		top.withdraw()
+		input_box = InputDialog(top)
+		top.wm_attributes("-topmost", 1)
+		top.focus_force()
+		main(input_box)
+		top.mainloop()
+	exit()
+
 # decorator function for displaying the program's runtime
 def timer(original_func):
 	def wrapper(*args, **kwargs):
@@ -98,7 +112,7 @@ def timer(original_func):
 		result = original_func(*args, **kwargs)
 		t2 = time.time() - t1
 		print(f'\n[Finished in {t2} sec]')
-		exit()
+		another_one()
 		return result
 	return wrapper
 
@@ -253,18 +267,6 @@ def main(input_box=None):
 
 		display = messagebox.askyesno("Success!", "GIF Successfully Generated:\n\nShow GIF?")
 		if display:	display_gif(gif_file)
-
-		another_one = messagebox.askyesno("Info", "Would you like to track another state?")
-		if another_one:
-			top = Toplevel()
-			center_window(top)
-			top.update()
-			top.withdraw()
-			input_box = InputDialog(top)
-			top.wm_attributes("-topmost", 1)
-			top.focus_force()
-			main(input_box)
-			top.mainloop()
 
 	except Exception as e:
 		messagebox.showerror(f"Failed: {repr(e)}", f"{traceback.format_exc()}")
