@@ -3,7 +3,7 @@ from state_dict import abbrev_to_state, state_to_abbrev
 from dialog import InputDialog, center_window
 from spinner import Spinner
 # ----------------- BULT-IN MODULES -------------------
-from tkinter import Tk, messagebox
+from tkinter import Tk, Toplevel, messagebox
 import traceback
 import base64
 import shutil
@@ -24,6 +24,8 @@ center_window(root)
 root.update()
 root.withdraw()
 input_box = InputDialog(root)
+root.wm_attributes("-topmost", 1)
+root.focus_force()
 
 def download_csv(url, filename):
 	http = PoolManager()
@@ -101,7 +103,7 @@ def timer(original_func):
 	return wrapper
 
 @timer
-def main():
+def main(input_box=None):
     # declare variables
 	abbrev = '' 		# user input: state abbreviation (i.e. 'NY')
 	graph_type = ''		# user input: '1' for cummulative, '2' for noncummulative
@@ -246,14 +248,26 @@ def main():
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_gif(2, abbrev_to_state[abbrev], gif_file)
 
-		messagebox.showinfo("Success", "GIF Successfully Generated!")
+		display = messagebox.askyesno("Success!", "GIF Successfully Generated:\n\nShow GIF?")
+		if display:	display_gif(gif_file)
 
-		# popup the GIF
-		display_gif(gif_file)
+		another_one = messagebox.askyesno("Info", "Would you like to track another state?")
+		if another_one:
+			top = Toplevel()
+			center_window(top)
+			top.update()
+			top.withdraw()
+			input_box = InputDialog(top)
+			top.wm_attributes("-topmost", 1)
+			top.focus_force()
+			main(input_box)
+			top.mainloop()
+
 		exit()
 
 	except Exception as e:
 		messagebox.showerror(f"Failed: {repr(e)}", f"{traceback.format_exc()}")
 
 if __name__ == '__main__':
-	main()
+	main(input_box)
+	root.mainloop()
