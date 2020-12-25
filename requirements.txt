@@ -2,3 +2,4 @@ urllib3
 datetime
 pandas
 pathlib
+numpy==1.19.3

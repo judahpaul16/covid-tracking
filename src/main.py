@@ -97,16 +97,20 @@ def timer(original_func):
 		t1 = time.time()
 		result = original_func(*args, **kwargs)
 		t2 = time.time() - t1
-		print(f'\n[Finished in {t2} sec]\n')
+		print(f'\n[Finished in {t2} sec]')
+		exit()
 		return result
 	return wrapper
 
 @timer
 def main(input_box=None):
     # declare variables
-	abbrev = '' 		# user input: state abbreviation (i.e. 'NY')
-	graph_type = ''		# user input: '1' for cummulative, '2' for noncummulative
-	gif_file = ''		# filename for the output gif
+	abbrev = '' 			# user input: state abbreviation (i.e. 'NY')
+	graph_type = ''			# user input: '1' for cummulative, '2' for noncummulative
+	gif_file = ''			# filename for the output gif
+	CURR_DIR = os.getcwd() 	# current working directory
+
+	if CURR_DIR[-3:] != 'src': os.chdir(CURR_DIR + "/src")
 
 	try:
 		# get user input from dialog window
@@ -262,10 +266,10 @@ def main(input_box=None):
 			main(input_box)
 			top.mainloop()
 
-		exit()
-
 	except Exception as e:
 		messagebox.showerror(f"Failed: {repr(e)}", f"{traceback.format_exc()}")
+		root.destroy()
+		raise SystemExit
 
 if __name__ == '__main__':
 	main(input_box)
