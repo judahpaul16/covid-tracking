@@ -4,8 +4,8 @@ This is a python script that grabs the current data on COVID-19 from various Git
 
 Be sure to have gnuplot installed on your system:
 
-# Windows
-Download the latest version of the installer from gnuplot site.
+## Windows
+Download the latest version of the installer from gnuplot [linked text](https://sourceforge.net/projects/gnuplot/files/gnuplot/ "site").
 
 Run the downloaded file and allow it to run as administrator if requested
 
@@ -17,25 +17,25 @@ The default installation location of gnuplot on Windows is C:\Program Files (x86
 
 NOTE: the filename will be of the format: gp&ltversion&gt-win32-mingw.exe
 
-# Linux
+## Linux
 The installation on Linux can be done through the different package managers as follows.
 
-# Arch
+## Arch
 `$ sudo pacman -S gnuplot`
 
-# Debian and Ubuntu
+## Debian and Ubuntu
 `$ sudo apt-get update`
 `$ sudo apt-get install gnuplot`
 
-# CentOS / RedHat
+## CentOS / RedHat
 `$ sudo yum check-update`
 `$ sudo yum install gnuplot`
 
-# Fedora
+## Fedora
 `$ sudo dnf check-update`
 `$ sudo dns install gnuplot`
 
-# Mac OSX
+## Mac OSX
 Using Homebrew
 `$ brew install gnuplot`
 Using MacPorts
@@ -47,13 +47,13 @@ Run this command to install dependencies:
 Navigate to the `src` folder and run the main file with:
 `python3 main.py`
 
-# Screenshots
+## Screenshots
 
 ![](input_dialog.png)
 
 ![](graph_noncumm_example.gif) ![](graph_cumm_example.gif)
 
-# Repos Used:
+## Repos Used:
 
 NYC Coronavirus Disease 2019 (COVID-19) Data
 https://github.com/nychealth/coronavirus-data
