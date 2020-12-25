@@ -5,7 +5,7 @@ This is a python script that grabs the current data on COVID-19 from various Git
 Be sure to have gnuplot installed on your system:
 
 ## Windows
-Download the latest version of the installer from gnuplot [linked text](https://sourceforge.net/projects/gnuplot/files/gnuplot/ "site").
+Download the latest version of the installer from gnuplot [site](https://sourceforge.net/projects/gnuplot/files/gnuplot/).
 
 Run the downloaded file and allow it to run as administrator if requested
 
