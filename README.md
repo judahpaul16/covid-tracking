@@ -15,7 +15,7 @@ On the setup window select the language and follow the instructions on screen.
 
 The default installation location of gnuplot on Windows is C:\Program Files (x86)\gnuplot
 
-NOTE: the filename will be of the format: gp&ltversion&gt-win32-mingw.exe
+NOTE: the filename will be of the format: gp\<version\>-win32-mingw.exe
 
 ## Linux
 The installation on Linux can be done through the different package managers as follows.
