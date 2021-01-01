@@ -56,7 +56,7 @@ class InputDialog(Dialog):
             state = str(self.e1.get())
             graph_type = int(self.e2)
             self.result = state, graph_type
-        except AttributeError:
+        except AttributeError:  
             pass
 
         if state == '' or (graph_type != 1 and graph_type != 2):
