@@ -10,7 +10,7 @@ import time
 import glob
 import os
 # ----------------- EXTERNAL MODULES ------------------
-from mathplotlib import plotpy as plt
+from matplotlib import plotpy as plt
 from urllib3 import PoolManager
 from datetime import date
 import pandas as pd

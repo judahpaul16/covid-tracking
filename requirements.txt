@@ -3,4 +3,4 @@ datetime
 pandas
 pathlib
 numpy==1.19.3
-plotly
+matplotlib
