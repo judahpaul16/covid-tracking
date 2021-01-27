@@ -1,5 +1,5 @@
 set term gif animate delay 30 enhanced font "roboto,14" size 1280,720
-set output "".gif_file
+set output "".output_file
 set grid ls 100
 set datafile separator ','
 set xdata time
