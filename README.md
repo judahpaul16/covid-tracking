@@ -60,9 +60,9 @@ Navigate to the `src` folder and run the main file with:
 
 ![](graph_noncumm_histogram_example.gif)
 
-![](graph_compare_bar_example.gif)
+![](graph_compare_bar_example.png)
 
-![](graph_compare_pie_example.gif)
+![](graph_compare_pie_example.png)
 
 ## Repos Used:
 
