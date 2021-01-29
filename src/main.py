@@ -193,7 +193,7 @@ def main(dialog_2=None):
 		if abbrev != "US" and graph_type == 1: # cummulative state data over time
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_cumm_*.gif')
-			output_file = f'../gifs/{abbrev.lower()}_cumm_{timestamp}.gif'
+			output_file = f'../gifs/{abbrev.lower()}_cumm_scatter_{timestamp}.gif'
 			
 			try: os.remove('../data/data.csv')
 			except FileNotFoundError: pass
@@ -217,7 +217,7 @@ def main(dialog_2=None):
 		elif abbrev == "US" and graph_type == 1: # cummulative US data over time
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_cumm_*.gif')
-			output_file = f'../gifs/{abbrev.lower()}_cumm_{timestamp}.gif'
+			output_file = f'../gifs/{abbrev.lower()}_cumm_scatter_{timestamp}.gif'
 			
 			try: os.remove('../data/data.csv')
 			except FileNotFoundError: pass

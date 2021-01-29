@@ -50,9 +50,15 @@ Navigate to the `src` folder and run the main file with:
 
 ## Screenshots
 
+![](main_dialog.png)
+
+![](compare_dialog.png)
+
 ![](input_dialog.png)
 
-![](graph_noncumm_example.gif) ![](graph_cumm_example.gif)
+![](graph_noncumm_scatter_example.gif) ![](graph_cumm_scatter_example.gif)
+
+![](graph_noncumm_histogram_example.gif)
 
 ## Repos Used:
 
