@@ -4,36 +4,17 @@ from dialog import MainDialog, InputDialog, CompareDialog, center
 from spinner import Spinner
 # ----------------- BULT-IN MODULES -------------------
 from tkinter import Tk, Toplevel, messagebox
+from itertools import repeat
 import traceback
 import shutil
 import time
 import glob
 import os
 # ----------------- EXTERNAL MODULES ------------------
-from matplotlib import plotpy as plt
+import matplotlib.pyplot as plt
 from urllib3 import PoolManager
 from datetime import date
 import pandas as pd
-
-# popup tkinter gui for user input
-root = Tk()
-root.update()
-center(root)
-root.withdraw()
-
-dialog_1 = MainDialog(root)
-dialog_2 = None
-
-# end program upon hitting 'Cancel' or [X] on dialog window
-if not dialog_1.validated:
-	root.destroy()
-	raise SystemExit
-
-if dialog_1.compare: dialog_2 = CompareDialog(root)
-else: dialog_2 = InputDialog(root)
-
-root.wm_attributes("-topmost", 1)
-root.focus_force()
 
 def download_csv(url, filename):
 	http = PoolManager()
@@ -50,6 +31,7 @@ def generate_chart(graph_type, state, output_file):
 	cases = ''		# plot data for graph legend
 	deaths = '' 	# plot data for graph legend
 	hosp = ''		# plot data for graph legend
+	timestamp = date.today().strftime("%m/%d/%Y")
 
 	# if Operating System is Windows
 	if os.name == 'nt':
@@ -71,6 +53,7 @@ def generate_chart(graph_type, state, output_file):
 							-e \"deaths = \'{deaths}\'\" \
 							-e \"output_file = \'{output_file}\'\" \
 							-e \"state=\'{state.upper()}\'\" gnuplot_cumm.gp {the_void}")
+		return
 
 	elif graph_type == 2 and state == "New York":
 		for item in df['CASE_COUNT']: cases += (' ' + str(item))
@@ -82,6 +65,7 @@ def generate_chart(graph_type, state, output_file):
 							-e \"hosp = \'{hosp}\'\" \
 							-e \"output_file = \'{output_file}\'\" \
 							-e \"state=\'{state.upper()}\'\" gnuplot_ny_noncumm.gp {the_void}")
+		return
 
 	elif graph_type == 2:
 		for item in df['cases']: cases += (' ' + str(int(item)))
@@ -91,14 +75,40 @@ def generate_chart(graph_type, state, output_file):
 							-e \"deaths = \'{deaths}\'\" \
 							-e \"output_file = \'{output_file}\'\" \
 							-e \"state=\'{state.upper()}\'\" gnuplot_noncumm.gp {the_void}")
+		return
 
 	elif graph_type == 3:
 		os.system(f"gnuplot -e \"output_file = \'{output_file}\'\" gnuplot_bar.gp {the_void}")
+		return
 
 	elif graph_type == 4:
 		# because gnuplot is a function plotter, it's easier to plot a pie chart with mathplotlib
-		pass
-		
+		fig, (ax1,ax2) = plt.subplots(1,2,figsize=(15,5.5))
+		fig.suptitle(f"State Share of COVID-19 Cases & Deaths As of {timestamp}\n(Unadjusted for Population)",
+			weight='bold')
+
+		labels = df['state'].values.tolist()
+		sizes = df['cases'].values.tolist()
+		tmp = list(repeat(0.05, len(sizes)))
+		tmp[sizes.index(max(sizes))] = 0.2 # only "explode" the largest slice
+		explode = tuple(tmp)
+		plt.text(x=0.49, y=0.5, s= "<- Cases", fontsize=12, ha="right", weight='bold', transform=fig.transFigure)
+		ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
+				shadow=True, rotatelabels=True, startangle=90)
+
+		labels = df['state'].values.tolist()
+		sizes = df['deaths'].values.tolist()
+		tmp = list(repeat(0, len(sizes))) # create a zero list
+		tmp[sizes.index(max(sizes))] = 0.2 # only "explode" the largest slice
+		explode = tuple(tmp)
+		plt.text(x=0.51, y=0.5, s= "Deaths ->", fontsize=12, ha="left", weight='bold', transform=fig.transFigure)
+		ax2.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
+				shadow=True, rotatelabels=True, startangle=90)
+
+		plt.tight_layout()
+		plt.axis('equal')  # ensures the pie is drawn as a circle
+		plt.savefig(output_file)
+		return
 
 def display_output(output_file):
 	# if Operating System is Windows
@@ -108,16 +118,14 @@ def display_output(output_file):
 	else:
 		os.system(f'xviewer {output_file}')
 
-def another_one():
+def another_one(dialog_1=None, dialog_2=None):
 	another_one = messagebox.askyesno("Info", "Would you like to generate more charts?")
 	if another_one:
 		top = Toplevel()
 		center(top)
 		top.update()
-		top.withdraw()
-		
+		top.withdraw()		
 		dialog_1 = MainDialog(top)
-		dialog_2 = None
 
 		# end program upon hitting 'Cancel' or [X] on dialog window
 		if not dialog_1.validated:
@@ -132,7 +140,7 @@ def another_one():
 
 		main(dialog_2)
 		top.mainloop()
-	exit()
+	return
 
 # decorator function for displaying the program's runtime
 def timer(original_func):
@@ -142,7 +150,7 @@ def timer(original_func):
 		t2 = time.time() - t1
 		print(f'\n[Finished in {t2} sec]')
 		another_one()
-		return result
+		exit()
 	return wrapper
 
 @timer
@@ -177,7 +185,7 @@ def main(dialog_2=None):
 		elif dialog_2.graph_type in [3, 4]:
 			graph_type = dialog_2.graph_type
 			entry_list = dialog_2.entry_list_values
-		
+			
 		# decision tree to generate the output file
 		if abbrev != "US" and graph_type == 1: # cummulative state data over time
 			timestamp = date.today().strftime("%m_%d_%Y")
@@ -341,8 +349,8 @@ def main(dialog_2=None):
 			files_to_remove = glob.glob(f"../images/{abbrevs_string}_compare_pie_*.png")
 			output_file = f"../images/compare_pie_{timestamp}.png"
 
-			try: os.remove('../data/data.csv')
-			except FileNotFoundError: pass
+			# try: os.remove('../data/data.csv')
+			# except FileNotFoundError: pass
 			
 			for file in files_to_remove:
 				try: os.remove(file)
@@ -352,6 +360,18 @@ def main(dialog_2=None):
 			data_file = '../data/raw_states_data.csv'
 			download_csv(url, data_file)
 			df_1 = pd.read_csv(data_file)
+			df_1.drop('date', axis=1, inplace=True)
+			df_1.drop('fips', axis=1, inplace=True)
+			df_1.dropna(inplace=True)
+			df_2 = None
+
+			for item in state_to_abbrev:
+				df_2 = pd.concat([df_2, df_1.drop(df_1.index[df_1['state'] != item]).tail(1)], axis=0)
+
+			df_2.dropna(inplace=True)
+			df_2.drop_duplicates(keep = 'first', inplace = True) 
+			df_2.astype({"cases":'int', "deaths":'int'})
+			df_2.to_csv('../data/data.csv', index=False)
 			
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_chart(4, None, output_file)
@@ -365,5 +385,24 @@ def main(dialog_2=None):
 		raise SystemExit
 
 if __name__ == '__main__':
+	# popup tkinter gui for user input
+	root = Tk()
+	root.update()
+	center(root)
+	root.withdraw()
+
+	dialog_1 = MainDialog(root)
+	dialog_2 = None
+
+	# end program upon hitting 'Cancel' or [X] on dialog window
+	if not dialog_1.validated:
+		root.destroy()
+		raise SystemExit
+
+	if dialog_1.compare: dialog_2 = CompareDialog(root)
+	else: dialog_2 = InputDialog(root)
+
+	root.wm_attributes("-topmost", 1)
+	root.focus_force()
 	main(dialog_2)
 	root.mainloop()

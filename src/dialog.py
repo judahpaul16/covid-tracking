@@ -131,8 +131,6 @@ class CompareDialog(Dialog):
         check_2 = IntVar()
         self.geometry("300x375")
         self.winfo_toplevel().title("COVID Tracking With GNUPlot")
-        self.states.clear()
-        self.entry_list.clear()
 
         for item in state_to_abbrev: self.states.append(item)
 
@@ -191,9 +189,13 @@ class CompareDialog(Dialog):
             self.validated = True
             return 1
         elif len(self.entry_list_values) == 0 and self.graph_type == 4:
+            self.validated = True
             return 1
 
         self.warning.config(text="This option compares all states.\nClear all entries to continue.", fg="red")
+        self.states.clear()
+        self.entry_list.clear()
+        self.entry_list_values.clear()
         return 0
 
 def center(master):
