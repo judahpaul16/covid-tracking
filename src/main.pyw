@@ -12,9 +12,11 @@ import glob
 import os
 # ----------------- EXTERNAL MODULES ------------------
 import matplotlib.pyplot as plt
+from chart_studio import plotly as py
 from urllib3 import PoolManager
 from datetime import date
 import pandas as pd
+import numpy as np
     
 def restart():
     root.destroy()
@@ -95,7 +97,7 @@ def generate_chart(graph_type, output_file, state=None, style=None):
 
 	elif graph_type == 4:
 		# because gnuplot is a function plotter, it's easier to plot a pie chart with mathplotlib
-		fig, (ax1,ax2) = plt.subplots(1,2,figsize=(13,5.5))
+		fig, (ax1,ax2) = plt.subplots(1,2,figsize=(14,6))
 		fig.suptitle(f"State Share of COVID-19 Cases & Deaths As of {timestamp}\n" \
 				"(Unadjusted for Population)", weight='bold')
 
@@ -106,18 +108,18 @@ def generate_chart(graph_type, output_file, state=None, style=None):
 		explode = tuple(tmp)
 		plt.text(x=0.49, y=0.52, s= "<- Cases", fontsize=12, ha="center",
 				weight='bold', transform=fig.transFigure)
-		ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
-				shadow=True, rotatelabels=True, startangle=90)
+		ax1.pie(sizes, explode=explode, labels=labels, shadow=False,
+				textprops={'size': 'smaller'}, rotatelabels=True, startangle=90)
 
 		labels = df['state'].values.tolist()
 		sizes = df['deaths'].values.tolist()
-		tmp = list(repeat(0, len(sizes))) # create a zero list
+		tmp = list(repeat(0.05, len(sizes)))
 		tmp[sizes.index(max(sizes))] = 0.2 # only "explode" the largest slice
 		explode = tuple(tmp)
 		plt.text(x=0.51, y=0.48, s= "Deaths ->", fontsize=12, ha="center",
 				weight='bold', transform=fig.transFigure)
-		ax2.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
-				shadow=True, rotatelabels=True, startangle=90)
+		ax2.pie(sizes, explode=explode, labels=labels, shadow=False,
+				textprops={'size': 'smaller'}, rotatelabels=True, startangle=90)
 
 		plt.tight_layout()
 		plt.axis('equal')  # ensures the pie is drawn as a circle
