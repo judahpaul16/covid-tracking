@@ -17,7 +17,7 @@ class MainDialog(Dialog):
         check_1 = IntVar()
         check_2 = IntVar()
         self.geometry("350x150")
-        self.winfo_toplevel().title("COVID Tracking With GNUPlot")
+        self.winfo_toplevel().title("COVID Tracking")
 
         Label(master, text="Compare States or\nTrack Individual States?",
             font=('Roboto', 12, 'bold')).grid(row=0, column=0, columnspan=2, rowspan=2)
@@ -68,7 +68,7 @@ class InputDialog(Dialog):
         check_1 = IntVar()
         check_2 = IntVar()
         self.geometry("360x180")
-        self.winfo_toplevel().title("COVID Tracking With GNUPlot")
+        self.winfo_toplevel().title("COVID Tracking")
 
         for item in state_to_abbrev: self.states.append(item)
 
@@ -130,7 +130,7 @@ class CompareDialog(Dialog):
         check_1 = IntVar()
         check_2 = IntVar()
         self.geometry("300x375")
-        self.winfo_toplevel().title("COVID Tracking With GNUPlot")
+        self.winfo_toplevel().title("COVID Tracking")
 
         for item in state_to_abbrev: self.states.append(item)
 
@@ -194,7 +194,6 @@ class CompareDialog(Dialog):
 
         self.warning.config(text="This option compares all states.\nClear all entries to continue.", fg="red")
         self.states.clear()
-        self.entry_list.clear()
         self.entry_list_values.clear()
         return 0
 
