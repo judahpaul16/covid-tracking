@@ -49,3 +49,4 @@ class Spinner:
 			self.remove_spinner(cleanup=True)
 		else:
 			sys.stdout.write('\r')
+

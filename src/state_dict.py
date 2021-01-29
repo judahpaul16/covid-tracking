@@ -54,4 +54,5 @@ state_to_abbrev = {
 	'Wyoming': 'WY'
 }
 
+# reversed state-abbreviation dictionary
 abbrev_to_state = dict(map(reversed, state_to_abbrev.items()))
