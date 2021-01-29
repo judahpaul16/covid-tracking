@@ -24,7 +24,7 @@ def download_csv(url, filename):
 		for line in lines:
 			file.write(line + "\n")
 
-def generate_chart(graph_type, state, output_file):
+def generate_chart(graph_type, output_file, state=None, style=None):
 	# bind variables
 	the_void = '' 	# a place for gnuplot warning messages to be sent
 	num_lines = ''	# number of lines of plot data
@@ -74,7 +74,7 @@ def generate_chart(graph_type, state, output_file):
 							-e \"cases = \'{cases}\'\" \
 							-e \"deaths = \'{deaths}\'\" \
 							-e \"output_file = \'{output_file}\'\" \
-							-e \"state=\'{state.upper()}\'\" gnuplot_noncumm.gp {the_void}")
+							-e \"state=\'{state.upper()}\'\" gnuplot_noncumm_{style}.gp {the_void}")
 		return
 
 	elif graph_type == 3:
@@ -83,16 +83,17 @@ def generate_chart(graph_type, state, output_file):
 
 	elif graph_type == 4:
 		# because gnuplot is a function plotter, it's easier to plot a pie chart with mathplotlib
-		fig, (ax1,ax2) = plt.subplots(1,2,figsize=(15,5.5))
-		fig.suptitle(f"State Share of COVID-19 Cases & Deaths As of {timestamp}\n(Unadjusted for Population)",
-			weight='bold')
+		fig, (ax1,ax2) = plt.subplots(1,2,figsize=(13,5.5))
+		fig.suptitle(f"State Share of COVID-19 Cases & Deaths As of {timestamp}\n" \
+				"(Unadjusted for Population)", weight='bold')
 
 		labels = df['state'].values.tolist()
 		sizes = df['cases'].values.tolist()
 		tmp = list(repeat(0.05, len(sizes)))
 		tmp[sizes.index(max(sizes))] = 0.2 # only "explode" the largest slice
 		explode = tuple(tmp)
-		plt.text(x=0.49, y=0.5, s= "<- Cases", fontsize=12, ha="right", weight='bold', transform=fig.transFigure)
+		plt.text(x=0.49, y=0.52, s= "<- Cases", fontsize=12, ha="center",
+				weight='bold', transform=fig.transFigure)
 		ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
 				shadow=True, rotatelabels=True, startangle=90)
 
@@ -101,7 +102,8 @@ def generate_chart(graph_type, state, output_file):
 		tmp = list(repeat(0, len(sizes))) # create a zero list
 		tmp[sizes.index(max(sizes))] = 0.2 # only "explode" the largest slice
 		explode = tuple(tmp)
-		plt.text(x=0.51, y=0.5, s= "Deaths ->", fontsize=12, ha="left", weight='bold', transform=fig.transFigure)
+		plt.text(x=0.51, y=0.48, s= "Deaths ->", fontsize=12, ha="center",
+				weight='bold', transform=fig.transFigure)
 		ax2.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
 				shadow=True, rotatelabels=True, startangle=90)
 
@@ -160,6 +162,7 @@ def main(dialog_2=None):
 	graph_type = ''			# user input: '1' for cummulative, '2' for noncummulative, '3' for bar graph
 	output_file = ''		# filename for the output
 	entry_list = []			# for comparing multiple states
+	style = ''
 	abbrevs = []			# list of abbreviations from entry list
 	CURR_DIR = os.getcwd() 	# current working directory
 
@@ -209,7 +212,7 @@ def main(dialog_2=None):
 			df.to_csv('../data/data.csv', index=False)
 
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_chart(1, abbrev_to_state[abbrev], output_file)
+				generate_chart(1, output_file, abbrev_to_state[abbrev])
 
 		elif abbrev == "US" and graph_type == 1: # cummulative US data over time
 			timestamp = date.today().strftime("%m_%d_%Y")
@@ -229,12 +232,16 @@ def main(dialog_2=None):
 			shutil.copy2(data_file, '../data/data.csv')
 
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_chart(1, abbrev_to_state[abbrev], output_file)
+				generate_chart(1, output_file, abbrev_to_state[abbrev])
 
 		elif abbrev == "US" and graph_type == 2: # non-cummulative US data over time
+			histogram = messagebox.askyesno("Info", "Would you like to display the chart as a histogram?")
+			if histogram: style = "histogram"
+			else: style = "scatter"
+
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_*.gif')
-			output_file = f'../gifs/{abbrev.lower()}_noncumm_{timestamp}.gif'
+			output_file = f'../gifs/{abbrev.lower()}_noncumm_{style}_{timestamp}.gif'
 
 			try: os.remove('../data/data.csv')
 			except FileNotFoundError: pass
@@ -255,11 +262,11 @@ def main(dialog_2=None):
 			df_merged.to_csv('../data/data.csv', index=False)
 
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_chart(2, abbrev_to_state[abbrev], output_file)
+				generate_chart(2, output_file, abbrev_to_state[abbrev], style)
 
 		elif abbrev == "NY" and graph_type == 2: # non-cummulative New York data over time
 			timestamp = date.today().strftime("%m_%d_%Y")
-			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_*.gif')
+			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_{style}*.gif')
 			output_file = f'../gifs/{abbrev.lower()}_noncumm_{timestamp}.gif'
 
 			try: os.remove('../data/data.csv')
@@ -275,12 +282,16 @@ def main(dialog_2=None):
 			shutil.copy2(data_file, '../data/data.csv')
 
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_chart(2, abbrev_to_state[abbrev], output_file)
+				generate_chart(2, output_file, abbrev_to_state[abbrev])
 
 		elif abbrev != "US" and graph_type == 2: # non-cummulative state data over time
+			histogram = messagebox.askyesno("Info", "Would you like to display the chart as a histogram?")
+			if histogram: style = "histogram"
+			else: style = "scatter"
+
 			timestamp = date.today().strftime("%m_%d_%Y")
-			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_*.gif')
-			output_file = f'../gifs/{abbrev.lower()}_noncumm_{timestamp}.gif'
+			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_{style}*.gif')
+			output_file = f'../gifs/{abbrev.lower()}_noncumm_{style}_{timestamp}.gif'
 
 			try: os.remove('../data/data.csv')
 			except FileNotFoundError: pass
@@ -304,7 +315,7 @@ def main(dialog_2=None):
 			df_merged.to_csv('../data/data.csv', index=False)
 
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_chart(2, abbrev_to_state[abbrev], output_file)
+				generate_chart(2, output_file, abbrev_to_state[abbrev], style)
 
 		elif graph_type == 3: # state comparison: bar chart
 			timestamp = date.today().strftime("%m_%d_%Y")
@@ -339,7 +350,7 @@ def main(dialog_2=None):
 			df_2.to_csv('../data/data.csv', index=False)
 
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_chart(3, None, output_file)
+				generate_chart(3, output_file)
 
 		if graph_type == 4: # state comparison: pie chart
 			timestamp = date.today().strftime("%m_%d_%Y")
@@ -349,8 +360,8 @@ def main(dialog_2=None):
 			files_to_remove = glob.glob(f"../images/{abbrevs_string}_compare_pie_*.png")
 			output_file = f"../images/compare_pie_{timestamp}.png"
 
-			# try: os.remove('../data/data.csv')
-			# except FileNotFoundError: pass
+			try: os.remove('../data/data.csv')
+			except FileNotFoundError: pass
 			
 			for file in files_to_remove:
 				try: os.remove(file)
@@ -374,7 +385,7 @@ def main(dialog_2=None):
 			df_2.to_csv('../data/data.csv', index=False)
 			
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_chart(4, None, output_file)
+				generate_chart(4, output_file)
 
 		display = messagebox.askyesno("Success!", "Chart Successfully Generated:\n\nShow Chart?")
 		if display:	display_output(output_file)
