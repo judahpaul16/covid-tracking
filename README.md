@@ -56,7 +56,7 @@ Navigate to the `src` folder and run the main file with:
 
 ![](compare_dialog.png)
 
-![](graph_noncumm_scatter_example.gif) ![](graph_cumm_scatter_example.gif)
+![](graph_noncumm_line_example.gif) ![](graph_cumm_line_example.gif)
 
 ![](graph_noncumm_histogram_example.gif)
 
