@@ -3,7 +3,7 @@ from state_dict import abbrev_to_state, state_to_abbrev
 from dialog import MainDialog, InputDialog, CompareDialog, center
 from spinner import Spinner
 # ----------------- BULT-IN MODULES -------------------
-from tkinter import Tk, Toplevel, messagebox
+from tkinter import Tk, messagebox
 from itertools import repeat
 import traceback
 import shutil
@@ -12,11 +12,9 @@ import glob
 import os
 # ----------------- EXTERNAL MODULES ------------------
 import matplotlib.pyplot as plt
-from chart_studio import plotly as py
 from urllib3 import PoolManager
 from datetime import date
 import pandas as pd
-import numpy as np
     
 def restart():
     root.destroy()
