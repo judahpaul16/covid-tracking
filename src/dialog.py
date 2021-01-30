@@ -135,7 +135,7 @@ class CompareDialog(Dialog):
 
         for item in state_to_abbrev: self.states.append(item)
 
-        Label(master, text="Select or Enter up to\n10 States to Compare",
+        Label(master, text="Select or Enter up to\n10 States to Compare*",
             font=('Roboto', 12, 'bold')).grid(row=0, column=0, columnspan=2, rowspan=2)
 
         self.warning = Label(master, text="", font=('roboto', 10))
@@ -166,7 +166,7 @@ class CompareDialog(Dialog):
                 self.warning.config(text="")
                 self.graph_type = 5
             
-        check_btn1 = Checkbutton(master, text = 'Bar Chart', variable = check_1,
+        check_btn1 = Checkbutton(master, text = 'Bar Chart*', variable = check_1,
             onvalue = 1, offvalue = 0, command=checkcheckbox)
         check_btn2 = Checkbutton(master, text = 'Pie Chart', variable = check_2,
             onvalue = 1, offvalue = 0, command=checkcheckbox)

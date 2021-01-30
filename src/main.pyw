@@ -131,7 +131,8 @@ def generate_chart(graph_type, output_file, state=None, style=None):
 		for i in range(len(x)):
 			xy_ratio.append((x.values[i] / y.values[i]))
 
-		plt.title("COVID-19 State Comparison: Cases vs. Deaths")
+		plt.figure(figsize=(12,6))
+		plt.title("COVID-19 Fifty State Comparison: Cases vs. Deaths")
 		plt.xlabel('Cases (millions)')
 		plt.ylabel('Deaths')
 		plt.scatter(x, y, c=xy_ratio, alpha=0.5)
