@@ -127,17 +127,26 @@ def generate_chart(graph_type, output_file, state=None, style=None):
 	elif graph_type == 5:
 		x = df['cases']
 		y = df['deaths']
+
+		annotations = list()
+		for entry in range(len(df['state'])):
+			annotations.append(state_to_abbrev[df['state'].values[entry]])
+
 		xy_ratio = list()
 		for i in range(len(x)):
-			xy_ratio.append((x.values[i] / y.values[i]))
+			xy_ratio.append((y.values[i] / x.values[i]))
 
 		plt.figure(figsize=(12,6))
 		plt.title("COVID-19 Fifty State Comparison: Cases vs. Deaths")
+	
+		for i, label in enumerate(annotations):
+			plt.annotate(label, (x[i], y[i]))
+
 		plt.xlabel('Cases (millions)')
 		plt.ylabel('Deaths')
 		plt.scatter(x, y, c=xy_ratio, alpha=0.5)
 		cbar = plt.colorbar()
-		cbar.set_label('Case/Death Ratio')
+		cbar.set_label('Case Fatality Rate')
 		plt.style.use('seaborn')
 		plt.tight_layout()
 		plt.savefig(output_file)
