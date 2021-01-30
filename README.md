@@ -64,6 +64,8 @@ Navigate to the `src` folder and run the main file with:
 
 ![](graph_cases_deaths_scatter_example.png)
 
+![](graph_cases_deaths_scatter_nolabel_example.png)
+
 ![](graph_compare_pie_example.png)
 
 ## Repos Used:
