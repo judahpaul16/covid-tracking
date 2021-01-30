@@ -4,7 +4,7 @@ set datafile separator ','
 set style data histogram
 set style histogram cluster gap 1
 set style fill solid border rgb "black"
-set title 'STATE COMPARISON: TOTAL CASES AND DEATHS'
+set title 'COVID-19 STATE COMPARISON: TOTAL CASES AND DEATHS'
 set key top left
 set auto x
 set yrange [0:*]

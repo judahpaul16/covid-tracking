@@ -129,7 +129,8 @@ class CompareDialog(Dialog):
     def body(self, master):
         check_1 = IntVar()
         check_2 = IntVar()
-        self.geometry("300x375")
+        check_3 = IntVar()
+        self.geometry("300x385")
         self.winfo_toplevel().title("COVID Tracking")
 
         for item in state_to_abbrev: self.states.append(item)
@@ -143,27 +144,37 @@ class CompareDialog(Dialog):
 
         for n in range(10):
             entry = Combobox(master, textvariable=StringVar(), values=self.states)
-            entry.grid(row=n+7, column=0, columnspan=2, sticky='we')
+            entry.grid(row=n+8, column=0, columnspan=2, sticky='we')
             self.entry_list.append(entry)
 
         def checkcheckbox():
-            if check_1.get() and check_2.get():
+            if (check_1.get() and check_2.get()) or \
+                (check_2.get() and check_3.get()) or \
+                (check_1.get() and check_3.get()):
+
                 self.warning.config(text="Select one graph type.", fg="red")
                 check_btn1.deselect()
                 check_btn2.deselect()
-            elif check_1.get() and not check_2.get():
+                check_btn3.deselect()
+            elif check_1.get() and not check_2.get() and not check_3.get():
                 self.warning.config(text="")
                 self.graph_type = 3
-            elif check_2.get() and not check_1.get():
+            elif check_2.get() and not check_1.get() and not check_3.get():
                 self.warning.config(text="")
                 self.graph_type = 4
+            elif check_3.get() and not check_1.get() and not check_2.get():
+                self.warning.config(text="")
+                self.graph_type = 5
             
         check_btn1 = Checkbutton(master, text = 'Bar Chart', variable = check_1,
             onvalue = 1, offvalue = 0, command=checkcheckbox)
         check_btn2 = Checkbutton(master, text = 'Pie Chart', variable = check_2,
             onvalue = 1, offvalue = 0, command=checkcheckbox)
-        check_btn1.grid(row=3, column=0, sticky='we')
-        check_btn2.grid(row=3, column=1, sticky='we')
+        check_btn3 = Checkbutton(master, text = 'Scatter Chart', variable = check_3,
+            onvalue = 1, offvalue = 0, command=checkcheckbox)
+        check_btn1.grid(row=4, column=0, columnspan=2, sticky='we')
+        check_btn2.grid(row=3, column=0, sticky='we')
+        check_btn3.grid(row=3, column=1, sticky='we')
 
         return self.entry_list[0] # initial focus
     
@@ -188,7 +199,7 @@ class CompareDialog(Dialog):
         if len(self.entry_list_values) > 1 and self.graph_type == 3:
             self.validated = True
             return 1
-        elif len(self.entry_list_values) == 0 and self.graph_type == 4:
+        elif len(self.entry_list_values) == 0 and self.graph_type in [4, 5]:
             self.validated = True
             return 1
 

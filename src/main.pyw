@@ -125,6 +125,23 @@ def generate_chart(graph_type, output_file, state=None, style=None):
 		plt.axis('equal')  # ensures the pie is drawn as a circle
 		plt.savefig(output_file)
 		return
+	
+	elif graph_type == 5:
+		x = df['cases']
+		y = df['deaths']
+		xy_ratio = list()
+		for i in range(len(x)):
+			xy_ratio.append((x.values[i] / y.values[i]))
+
+		plt.title("COVID-19 State Comparison: Cases vs. Deaths")
+		plt.xlabel('Cases (millions)')
+		plt.ylabel('Deaths')
+		plt.scatter(x, y, c=xy_ratio, alpha=0.5)
+		cbar = plt.colorbar()
+		cbar.set_label('Case/Death Ratio')
+		plt.style.use('seaborn')
+		plt.tight_layout()
+		plt.savefig(output_file)
 
 def display_output(output_file):
 	# if Operating System is Windows
@@ -181,7 +198,7 @@ def main(dialog_2=None):
 				abbrev = dialog_2.state.upper()
 				graph_type = dialog_2.graph_type
 				state = abbrev_to_state[abbrev]
-		elif dialog_2.graph_type in [3, 4]:
+		elif dialog_2.graph_type in [3, 4, 5]:
 			graph_type = dialog_2.graph_type
 			entry_list = dialog_2.entry_list_values
 			
@@ -189,7 +206,7 @@ def main(dialog_2=None):
 		if abbrev != "US" and graph_type == 1: # cummulative state data over time
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_cumm_*.gif')
-			output_file = f'../gifs/{abbrev.lower()}_cumm_scatter_{timestamp}.gif'
+			output_file = f'../gifs/{abbrev.lower()}_cumm_line_{timestamp}.gif'
 			
 			clear_data_files(files_to_remove)
 
@@ -209,7 +226,7 @@ def main(dialog_2=None):
 		elif abbrev == "US" and graph_type == 1: # cummulative US data over time
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_cumm_*.gif')
-			output_file = f'../gifs/{abbrev.lower()}_cumm_scatter_{timestamp}.gif'
+			output_file = f'../gifs/{abbrev.lower()}_cumm_line_{timestamp}.gif'
 			
 			clear_data_files(files_to_remove)
 
@@ -225,7 +242,7 @@ def main(dialog_2=None):
 		elif abbrev == "US" and graph_type == 2: # non-cummulative US data over time
 			histogram = messagebox.askyesno("Info", "Would you like to display the chart as a histogram?")
 			if histogram: style = "histogram"
-			else: style = "scatter"
+			else: style = "line"
 
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_*.gif')
@@ -267,7 +284,7 @@ def main(dialog_2=None):
 		elif abbrev != "US" and graph_type == 2: # non-cummulative state data over time
 			histogram = messagebox.askyesno("Info", "Would you like to display the chart as a histogram?")
 			if histogram: style = "histogram"
-			else: style = "scatter"
+			else: style = "line"
 
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_{style}*.gif')
@@ -324,13 +341,10 @@ def main(dialog_2=None):
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_chart(3, output_file)
 
-		if graph_type == 4: # state comparison: pie chart
+		elif graph_type == 4: # state comparison: pie chart
 			timestamp = date.today().strftime("%m_%d_%Y")
-			for entry in entry_list:
-				abbrevs.append(state_to_abbrev[entry].lower())
-			abbrevs_string = str(abbrevs).replace('\', \'','_').strip('[,\']')
-			files_to_remove = glob.glob(f"../images/{abbrevs_string}_compare_pie_*.png")
-			output_file = f"../images/compare_pie_{timestamp}.png"
+			files_to_remove = glob.glob(f"../images/us_compare_pie_*.png")
+			output_file = f"../images/us_compare_pie_{timestamp}.png"
 
 			clear_data_files(files_to_remove)
 
@@ -354,6 +368,32 @@ def main(dialog_2=None):
 			
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_chart(4, output_file)
+
+		elif graph_type == 5: # state comparison: scatter plot cases vs deaths
+			timestamp = date.today().strftime("%m_%d_%Y")
+			files_to_remove = glob.glob(f"../images/us_cases_deaths_scatter_*.png")
+			output_file = f"../images/us_cases_deaths_scatter_{timestamp}.png"
+
+			clear_data_files(files_to_remove)
+			url = 'https://github.com/nytimes/covid-19-data/raw/master/us-states.csv'
+			data_file = '../data/raw_states_data.csv'
+			download_csv(url, data_file)
+			df_1 = pd.read_csv(data_file)
+			df_1.drop('date', axis=1, inplace=True)
+			df_1.drop('fips', axis=1, inplace=True)
+			df_1.dropna(inplace=True)
+			df_2 = None
+
+			for item in state_to_abbrev:
+				df_2 = pd.concat([df_2, df_1.drop(df_1.index[df_1['state'] != item]).tail(1)], axis=0)
+
+			df_2.dropna(inplace=True)
+			df_2.drop_duplicates(keep = 'first', inplace = True) 
+			df_2.astype({"cases":'int', "deaths":'int'})
+			df_2.to_csv('../data/data.csv', index=False)
+
+			with Spinner('\nYour graph will appear shortly...'):
+				generate_chart(5, output_file)
 
 		display = messagebox.askyesno("Success!", "Chart Successfully Generated:\n\nShow Chart?")
 		if display:	display_output(output_file)

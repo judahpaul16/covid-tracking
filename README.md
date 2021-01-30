@@ -46,7 +46,7 @@ Run this command to install dependencies:
 `pip3 install -r requirements.txt`
 
 Navigate to the `src` folder and run the main file with:
-`python3 main.py`
+`python3 main.pyw`
 
 ## Screenshots
 
@@ -61,6 +61,8 @@ Navigate to the `src` folder and run the main file with:
 ![](graph_noncumm_histogram_example.gif)
 
 ![](graph_compare_bar_example.png)
+
+![](graph_cases_deaths_scatter_example.png)
 
 ![](graph_compare_pie_example.png)
 
