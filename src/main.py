@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from urllib3 import PoolManager
 from datetime import date
 import pandas as pd
+import numpy as np
     
 def restart():
     root.destroy()
@@ -76,7 +77,7 @@ def generate_chart(graph_type, output_file, state=None, style=None):
 							-e \"deaths = \'{deaths}\'\" \
 							-e \"hosp = \'{hosp}\'\" \
 							-e \"output_file = \'{output_file}\'\" \
-							-e \"state=\'{state.upper()}\'\" gnuplot_ny_noncumm_line.gp {the_void}")
+							-e \"state=\'{state.upper()}\'\" gnuplot_ny_noncumm_{style}.gp {the_void}")
 		return
 
 	elif graph_type == 2:
@@ -125,6 +126,7 @@ def generate_chart(graph_type, output_file, state=None, style=None):
 		return
 	
 	elif graph_type == 5:
+		# because gnuplot is a function plotter, it's easier to plot a pie chart with mathplotlib
 		x = df['cases']
 		y = df['deaths']
 
@@ -146,10 +148,41 @@ def generate_chart(graph_type, output_file, state=None, style=None):
 		plt.ylabel('Deaths')
 		plt.scatter(x, y, c=xy_ratio, alpha=0.5)
 		cbar = plt.colorbar()
-		cbar.set_label('Case Fatality Rate')
+		cbar.set_label('Case Fatality Rate (%)')
 		plt.style.use('seaborn')
 		plt.tight_layout()
 		plt.savefig(output_file)
+	
+	elif graph_type == 6:
+		# get slice of data
+		slice = df.loc[:,['state', 'cases']]
+
+		plt.style.use('seaborn')
+		# gives individual boxplot with all step names
+		bp1 = slice.boxplot(column='cases', by='state', figsize=(12,8))
+		plt.ylabel("Cases (millions)")
+		plt.xlabel("State")
+		plt.gca()
+		plt.xticks(rotation=90)
+		plt.suptitle("COVID-19 Fifty State Comparison")
+		plt.title("Daily Case Variance")
+		plt.tight_layout()
+		plt.savefig(output_file.replace("_death", ""))
+
+		# get slice of data
+		slice2 = df.loc[:,['state', 'deaths']]
+
+		plt.style.use('seaborn')
+		# gives individual boxplot with all step names
+		bp2 = slice2.boxplot(column='deaths', by='state', figsize=(12,8))
+		plt.ylabel("Deaths")
+		plt.xlabel("State")
+		plt.gca()
+		plt.xticks(rotation=90)
+		plt.suptitle("COVID-19 Fifty State Comparison")
+		plt.title("Daily Death Variance")
+		plt.tight_layout()
+		plt.savefig(output_file.replace("_case", ""))
 
 def display_output(output_file):
 	# if Operating System is Windows
@@ -179,12 +212,12 @@ def timer(original_func):
 @timer
 def main(dialog_2=None):
     # declare variables
-	abbrev = '' 			# user input: state abbreviation (i.e. 'NY')
-	graph_type = ''			# user input: '1' for cummulative, '2' for noncummulative, '3' for bar graph
-	output_file = ''		# filename for the output
-	entry_list = []			# for comparing multiple states
-	style = ''
-	abbrevs = []			# list of abbreviations from entry list
+	abbrev = '' 			# user input: state abbreviation (i.e. 'NY' or 'ny')
+	graph_type = ''			# user input: '1' for cummulative, '2' for noncummulative, '3' for bar graph, etc.
+	entry_list = list()		# user input: for comparing multiple states
+	style = ''				# display as histogram or line
+	output_file = ''		# filename for the chart output
+	abbrevs = list()		# list of abbreviations from entry list
 	CURR_DIR = os.getcwd() 	# current working directory
 
 	if CURR_DIR[-3:] != 'src': os.chdir(CURR_DIR + "/src")
@@ -206,7 +239,7 @@ def main(dialog_2=None):
 				abbrev = dialog_2.state.upper()
 				graph_type = dialog_2.graph_type
 				state = abbrev_to_state[abbrev]
-		elif dialog_2.graph_type in [3, 4, 5]:
+		elif dialog_2.graph_type in [3, 4, 5, 6]:
 			graph_type = dialog_2.graph_type
 			entry_list = dialog_2.entry_list_values
 			
@@ -215,7 +248,6 @@ def main(dialog_2=None):
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_cumm_line_*.gif')
 			output_file = f'../gifs/{abbrev.lower()}_cumm_line_{timestamp}.gif'
-			
 			clear_data_files(files_to_remove)
 
 			# get new data
@@ -235,7 +267,6 @@ def main(dialog_2=None):
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_cumm_line_*.gif')
 			output_file = f'../gifs/{abbrev.lower()}_cumm_line_{timestamp}.gif'
-			
 			clear_data_files(files_to_remove)
 
 			# get new data
@@ -256,7 +287,6 @@ def main(dialog_2=None):
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_{style}_*.gif')
 			output_file = f'../gifs/{abbrev.lower()}_noncumm_{style}_{timestamp}.gif'
-
 			clear_data_files(files_to_remove)
 
 			# get new data
@@ -274,11 +304,17 @@ def main(dialog_2=None):
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_chart(2, output_file, abbrev_to_state[abbrev], style)
 
-		elif abbrev == "NY" and graph_type == 2: # non-cummulative New York data over time
+		elif abbrev == "NY" and graph_type == 2:
+			# non-cummulative New York data over time
+			# separate data is used since it also includes hospitalization numbers
+			histogram = messagebox.askyesno("Info", \
+				"Would you like to display the chart as a \'histogram\'?\n\n[Default: \'line\']")
+			if histogram: style = "histogram"
+			else: style = "line"
+
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_{style}_*.gif')
-			output_file = f'../gifs/{abbrev.lower()}_noncumm_{timestamp}.gif'
-
+			output_file = f'../gifs/{abbrev.lower()}_noncumm_{style}_{timestamp}.gif'
 			clear_data_files(files_to_remove)
 
 			# get new data
@@ -288,7 +324,7 @@ def main(dialog_2=None):
 			shutil.copy2(data_file, '../data/data.csv')
 
 			with Spinner('\nYour graph will appear shortly...'):
-				generate_chart(2, output_file, abbrev_to_state[abbrev])
+				generate_chart(2, output_file, abbrev_to_state[abbrev], style)
 
 		elif abbrev != "US" and graph_type == 2: # non-cummulative state data over time
 			histogram = messagebox.askyesno("Info", \
@@ -299,7 +335,6 @@ def main(dialog_2=None):
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f'../gifs/{abbrev.lower()}_noncumm_{style}_*.gif')
 			output_file = f'../gifs/{abbrev.lower()}_noncumm_{style}_{timestamp}.gif'
-
 			clear_data_files(files_to_remove)
 			
 			# get new data
@@ -327,7 +362,6 @@ def main(dialog_2=None):
 			abbrevs_string = str(abbrevs).replace('\', \'','_').strip('[,\']')
 			files_to_remove = glob.glob(f"../images/{abbrevs_string}_compare_bar_*.png")
 			output_file = f"../images/{abbrevs_string}_compare_bar_{timestamp}.png"
-
 			clear_data_files(files_to_remove)
 
 			# get new data
@@ -355,7 +389,6 @@ def main(dialog_2=None):
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f"../images/us_compare_pie_*.png")
 			output_file = f"../images/us_compare_pie_{timestamp}.png"
-
 			clear_data_files(files_to_remove)
 
 			# get new data
@@ -383,8 +416,9 @@ def main(dialog_2=None):
 			timestamp = date.today().strftime("%m_%d_%Y")
 			files_to_remove = glob.glob(f"../images/us_cases_deaths_scatter_*.png")
 			output_file = f"../images/us_cases_deaths_scatter_{timestamp}.png"
-
 			clear_data_files(files_to_remove)
+
+			# get new data
 			url = 'https://github.com/nytimes/covid-19-data/raw/master/us-states.csv'
 			data_file = '../data/raw_states_data.csv'
 			download_csv(url, data_file)
@@ -404,6 +438,28 @@ def main(dialog_2=None):
 
 			with Spinner('\nYour graph will appear shortly...'):
 				generate_chart(5, output_file)
+		
+		elif graph_type == 6: # state comparison: boxplot variance in  daily deaths and cases
+			timestamp = date.today().strftime("%m_%d_%Y")
+			files_to_remove = glob.glob(f"../images/us_case_death_variance_boxplot_*.png")
+			output_file = f"../images/us_case_death_variance_boxplot_{timestamp}.png"
+			clear_data_files(files_to_remove)
+			
+			# get new data
+			url = 'https://github.com/nytimes/covid-19-data/raw/master/us-states.csv'
+			data_file = '../data/raw_states_data.csv'
+			download_csv(url, data_file)
+			df_1 = pd.read_csv(data_file)
+			df_1.drop('fips', axis=1, inplace=True)
+			df_2 = df_1.loc[:,['cases', 'deaths']].diff() # cummulative --> noncummulative
+			df_1.drop(['cases', 'deaths'], axis=1, inplace=True)
+			df_merged = pd.concat([df_1, df_2], axis=1)
+			df_merged.dropna(inplace=True)
+			df_merged.astype({"cases":'int', "deaths":'int'})
+			df_merged.to_csv('../data/data.csv', index=False)
+
+			with Spinner('\nYour graph will appear shortly...'):
+				generate_chart(6, output_file)
 
 		display = messagebox.askyesno("Success!", "Chart Successfully Generated:\n\nShow Chart?")
 		if display:	display_output(output_file)

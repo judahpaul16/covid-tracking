@@ -60,6 +60,10 @@ Navigate to the `src` folder and run the main file with:
 
 ![](graph_noncumm_histogram_example.gif)
 
+![](graph_boxplot_case_variance_example.png)
+
+![](graph_boxplot_death_variance_example.png)
+
 ![](graph_compare_bar_example.png)
 
 ![](graph_cases_deaths_scatter_example.png)

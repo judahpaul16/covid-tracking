@@ -7,9 +7,7 @@ set timefmt '%Y-%m-%d'
 set xtics rotate
 set title 'NON-CUMMULATIVE COVID-19 STATS FOR '.state
 unset ylabel
-# We need to set lw in order for error bars to actually appear.
 set style histogram errorbars linewidth 1
-# Make the bars semi-transparent so that the errorbars are easier to see.
 set style fill solid 0.3
 set bars front
 do for [ii=1:num_lines] {
