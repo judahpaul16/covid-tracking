@@ -1,6 +1,6 @@
 # COVID-19-Tracking
 
-In short, this is a python script that grabs the current COVID-19 data from various GitHub repos which track the numbers. From there I use the pandas python library to parse the data in the CSV file to be used in a manner that the user decides (i.e. compare states, cumulative vs noncumulative). I then prompted the user to show a depiction of daily increases in COVID-19 death, hospitalizations, and infections.
+A python script that grabs the current COVID-19 data from various GitHub repos that track the spread. Basically my first crack at data analysis.
 
 Be sure to have gnuplot installed on your system:
 
