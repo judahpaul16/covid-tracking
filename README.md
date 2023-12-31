@@ -1,6 +1,6 @@
 # 📈 COVID-19 Tracking
 
-A python script that grabs the current COVID-19 data from various GitHub repos that track the spread. Basically my first crack at data analysis.
+A python script that grabs the current COVID-19 data from various GitHub repos that track the spread and displays visual representations based on GUI input (tkinter). My first attempt at data visualization with python.
 
 Be sure to have gnuplot installed on your system:
 
