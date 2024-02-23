@@ -51,27 +51,27 @@ Navigate to the `src` folder and run the main file with:
 ---
 
 ### 📷 Screenshots & Charts
-![](main_dialog.png)
+![](images/main_dialog.png)
 
-![](input_dialog.png)
+![](images/input_dialog.png)
 
-![](compare_dialog.png)
+![](images/compare_dialog.png)
 
-![](graph_noncumm_line_example.gif) ![](graph_cumm_line_example.gif)
+![](images/graph_noncumm_line_example.gif) ![](images/graph_cumm_line_example.gif)
 
-![](graph_noncumm_histogram_example.gif)
+![](images/graph_noncumm_histogram_example.gif)
 
-![](graph_boxplot_case_variance_example.png)
+![](images/graph_boxplot_case_variance_example.png)
 
-![](graph_boxplot_death_variance_example.png)
+![](images/graph_boxplot_death_variance_example.png)
 
-![](graph_compare_bar_example.png)
+![](images/graph_compare_bar_example.png)
 
-![](graph_cases_deaths_scatter_example.png)
+![](images/graph_cases_deaths_scatter_example.png)
 
-![](graph_cases_deaths_scatter_nolabel_example.png)
+![](images/graph_cases_deaths_scatter_nolabel_example.png)
 
-![](graph_compare_pie_example.png)
+![](images/graph_compare_pie_example.png)
 
 ---
 
